@@ -1,0 +1,2 @@
+# align_isoforms
+Working in collaboration with biology professor [Les Timpe](https://github.com/lestimpe) to develop a tool for biologists to easily compare the primary sequences of different isoforms of proteins.
