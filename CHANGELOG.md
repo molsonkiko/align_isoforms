@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.2.0] - 2022-11-04
+
+1. Changed `align_isoforms(accession_num)` so that it always outputs a CLUSTALO format file for any protein
+    with 2+ isoforms, so that proteins with 2 isoforms have the same output format as proteins with 3+ isoforms.
+
 ## [0.1.0] - 2022-11-04
 
 ### Added
