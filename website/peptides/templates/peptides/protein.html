@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="utf-8">
+        <title>Protein detail for {{ protein.acc_num }}</title>
+    </head>
+    <body>
+        <p><a href="/peptides">Back to proteins list</a></p>
+        <p><a href="https://www.uniprot.org/uniprotkb/{{protein.acc_num}}/entry">
+            UniProt entry for {{ protein.acc_num }}
+        </a></p>
+        <p>Isoforms:</p>
+        <ol>
+        {% for isoform in isoforms %}
+            <li>
+                <a href="/peptides/proteins/{{ isoform }}">Isoform {{ isoform }}</a>
+            </li>
+        {% endfor %}
+        </ol>
+        <p>Alignments:</p>
+        <ul>
+        {% for alignment in alignments %}
+            <li>
+                <a href="/peptides/alignments/{{ alignment.prots }}">Alignment {{ alignment.prots }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+        <p>Sequence (length {{seq_len}}):</p>
+        <pre>
+            {{ protein.sequence }}
+        </pre>
+        <p>Peptides:</p>
+        <ul>
+        {% for peptide in peptides %}
+            <li>{{ peptide.peptide }}</li>
+        {% endfor %}
+        </ul>
+    </body>
+</html>

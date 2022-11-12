@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset = "utf-8">
+        <title>Isoform alignment peptide finder</title>
+    </head>
+    <a href="get_protein">Find a new protein</a>
+    <p>Proteins so far:</p>
+    <ul>
+    {% for prot in proteins %}
+        <li>
+            <a href="proteins/{{prot.acc_num}}">{{prot.acc_num}}</a>
+        </li>
+    {% endfor %}
+    </ul>
+</html>

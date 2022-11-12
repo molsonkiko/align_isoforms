@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.3.0] - 2022-11-12
+
+1. Added a very simple, not-yet-production-ready website for including the peptides that Les found in his research and getting the isoforms and a multiple sequence alignment for any protein.
+
 ## [0.2.0] - 2022-11-04
 
 1. Changed `align_isoforms(accession_num)` so that it always outputs a CLUSTALO format file for any protein

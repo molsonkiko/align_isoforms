@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="utf-8">
+        <title>Detail for alignment {{alignment.prots}}</title>
+    </head>
+    <body>
+        <p><a href="/peptides">Back to proteins list</a></p>
+        <p>Alignment {{alignment.prots}}</p>
+        <pre>
+            {{alignment.alignment}}
+        </pre>
+        <p>Associated proteins</p>
+        <ol>
+        {% for protein in proteins %}
+            <li>
+                <a href = "/peptides/proteins/{{protein.acc_num}}">{{protein.acc_num}}</a>
+            </li>
+        {% endfor %}
+        </ol>
+        <p>Associated peptides</p>
+        <ol>
+        {% for peptide in peptides %}
+            <li>
+                {{peptide.prot}}: {{peptide.peptide}}
+            </li>
+        {% endfor %}
+        </ol>
+    </body>
+</html>

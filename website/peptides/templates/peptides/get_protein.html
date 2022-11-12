@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="utf-8">
+        <title>Get protein</title>
+    </head>
+    <body>
+        <p><a href="/peptides">Back to proteins list</a></p>
+        <form action = "{% url 'peptides:get_protein'  %}" method = "POST">
+            <!-- need csf_token in POST forms to avoid CSRF attacks -->
+            {% csrf_token %}
+            <fieldset>
+                <p><strong>Choose a protein accession number</strong></p>
+                <input type="text" name="acc_num" id="acc_num">
+                <label for="acc_num">Accession number</label>
+            </fieldset>
+            <input type="submit" value="Request data">
+        </form>
+    </body>
+</html>
