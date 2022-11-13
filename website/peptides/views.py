@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 
-from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as get_protein_json
+from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
 
 from .models import Protein, Peptide, Isoform, Alignment
 
@@ -16,6 +16,20 @@ class IndexView(generic.ListView):
     def get_queryset(self):
         '''get only the primary isoform of each protein'''
         return Protein.objects.exclude(acc_num__contains = '-')
+
+
+def sequence_chunks(seq: str, peptides: list[Peptide]):
+    '''Show sequence with spans highlighting each mass spec peptide'''
+    chunks = []
+    start = 0
+    end = 0
+    for pep in peptides:
+        end = pep.location
+        chunks.append({'seq': seq[start:end], 'is_pep': False})
+        chunks.append({'seq': pep.peptide, 'is_pep': True, 'loc': end})
+        start = end
+    chunks.append({'seq': seq[end:], 'is_pep': False})
+    return chunks
 
 
 def protein_view(request, acc_num: str):
@@ -35,6 +49,7 @@ def protein_view(request, acc_num: str):
             'alignments': alignments,
             'isoforms': isoforms,
             'peptides': peptides,
+            'sequence_chunks': sequence_chunks(prot.sequence, peptides),
             'seq_len': len(prot.sequence),
         }
     )
@@ -50,25 +65,28 @@ def get_protein(request):
             acc_num = acc_num[:-2]
         try:
             existing_prot = Protein.objects.get(acc_num = acc_num)
-            return Http404(
+            return HttpResponseRedirect(
                 reverse('peptides:proteins', args=(existing_prot.acc_num,))
             )
         except:
             pass
-        prot = get_protein_json(acc_num)
+        # get uniprot data for the protein and save it to the database
+        prot = uniprot_json(acc_num)
         if not prot:
             return HttpResponse(
                 "Could not find UniProt data for the accession number %s" % acc_num
             )
+        og_acc_num = acc_num
+        # now get all the uniprot data for all the isoforms of the protein 
         prots = get_isoforms(prot)
         prot_seqs = get_all_seqs(prots)
-        og_acc_num = acc_num
         og_prot = Protein(
             acc_num = og_acc_num, 
             sequence = prot_seqs[og_acc_num]
         )
         og_prot.save(force_insert=True)
         prot_list = og_acc_num
+        # add each isoform to the database
         for acc_num, seq in prot_seqs.items():
             if acc_num == og_acc_num:
                 continue
@@ -80,11 +98,13 @@ def get_protein(request):
             )
             prot_list += ',' + acc_num
             prot.save(force_insert=True)
+            # also add a relationschip between og_prot and new prot
             Isoform.objects.create(
                 prot_1 = Protein.objects.get(acc_num = og_acc_num),
                 prot_2 = Protein.objects.get(acc_num = acc_num)
             )
         try:
+            # finally, get a multiple sequence alignment of all the isoforms
             alignment = request_multi_alignment(prot_seqs)
             Alignment.objects.create(prots = prot_list, alignment = alignment)
         except:
@@ -131,7 +151,7 @@ def download_alignment(request, prots: str):
     )
 
 
-def get_protein_json(request, acc_num: str):
+def protein_json(request, acc_num: str):
     prot = Protein.objects.get(acc_num = acc_num)
     isoform_ids = [iso.acc_num for iso in prot.get_isoforms()]
     alignments = [al.alignment for al in prot.get_alignments()]
@@ -150,7 +170,8 @@ def get_protein_json(request, acc_num: str):
         }
     )
 
-def get_protein_json_schema(request):
+
+def protein_json_schema(request):
     file_dir = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(file_dir, 'static/peptides/protein_json_schema.json')) as f:
         schema = f.read()
@@ -158,3 +179,44 @@ def get_protein_json_schema(request):
         schema,
         headers = {'content-type': 'application/json'}
     )
+
+
+def peptides_csv(request):
+    '''Return a csv containing responsive accession numbers.
+    Query must be of the form 'acc_num_like=<partial accession number>'
+        or 'acc_num=<exact accession number>', or no query at all.
+    If no query, return a csv returning all peptides.
+    If acc_num query, return only the peptides for that accession number.
+    If acc_num_like query, return peptides where the accession number
+        contains the acc_num_like substring.
+    '''
+    acc_num_like = request.GET.get('acc_num_like', '')
+    acc_num = request.GET.get('acc_num', '')
+    if acc_num_like:
+        filename =  'peptides of uniprot ids like %s.csv' % acc_num_like
+        peptides = (Peptide.objects
+            .filter(prot__contains = acc_num_like)
+            .order_by('prot', 'location')
+        )
+    elif acc_num:
+        filename = 'peptides of uniprot id %s.csv' % acc_num
+        peptides = (Peptide.objects
+            .filter(prot = acc_num)
+            .order_by('prot', 'location')
+        )
+    else:
+        filename = 'peptides.csv'
+        peptides = Peptide.objects.order_by('prot', 'location')
+    csv = 'uniprot_id,location,sequence\n'
+    for pep in peptides:
+        csv += '%s,%s,%s\n' % (pep.prot, pep.location, pep.peptide)
+    disposition = 'attachment; filename = "%s"' % filename
+    content_type = 'text; charset = "utf-8"'
+    return HttpResponse(
+        csv,
+        headers = {'content-disposition': disposition, 'content-type': content_type},
+    )
+
+
+def site_map(request):
+    return render(request, 'peptides/site_map.html')

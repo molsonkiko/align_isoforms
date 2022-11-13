@@ -3,6 +3,9 @@
     <head>
         <meta charset="utf-8">
         <title>Protein detail for {{ protein.acc_num }}</title>
+        <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
+        <link rel="stylesheet" type="text/css" href="/static/peptides/css/protein.css">
+        <script src="/static/peptides/js/protein.js" defer></script>
     </head>
     <body>
         <h1>Protein {{ protein.acc_num }} detail</h1>
@@ -15,7 +18,7 @@
             Get all data for this protein as JSON
             </a>
             (view 
-            <a href = "/peptides/proteins/protein_json_schema">schema</a>)
+            <a href = "/peptides/proteins/json_schema">schema</a>)
         </p>
         <p>Isoforms:</p>
         <ol>
@@ -34,13 +37,24 @@
         {% endfor %}
         </ul>
         <p>Sequence (length {{seq_len}}):</p>
-        <pre>
-            {{ protein.sequence }}
-        </pre>
+        <p id = "sequence">
+        {% for chunk in sequence_chunks  %}
+            {% if chunk.is_pep %}
+                <span class="peptide" id="{{chunk.loc}}">
+                    {{ chunk.seq }}
+                </span>
+            {% else %}
+                {{ chunk.seq }}
+            {% endif %}
+        {% endfor %}
+        </p>
         <p>Mass spec peptides unique to this isoform:</p>
         <ul>
         {% for peptide in peptides %}
-            <li>@{{ peptide.location }}: {{ peptide.peptide }}</li>
+            <li><a href="#{{peptide.location}}"
+                onclick = 'highlight_loc("{{peptide.location}}"); last_highlighted_loc = "{{peptide.location}}"'>
+                @{{ peptide.location }}
+            </a>: {{ peptide.peptide }}</li>
         {% endfor %}
         </ul>
     </body>

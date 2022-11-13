@@ -7,7 +7,7 @@ class BaseModel(models.Model):
 
 
 class Protein(BaseModel):
-    prot_id = models.IntegerField(primary_key=True)
+    prot_id = models.AutoField(primary_key=True)
     acc_num = models.CharField(max_length=15, unique=True)
     sequence = models.CharField(max_length=45_000)
     # longest protein ever found is titin, with ~35,000 aa

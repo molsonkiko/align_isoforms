@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +18,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#^zodt8yg*p6)d4z@!8qo@!%u#_e!1^fgg+*2qs^@2_dv-roa9'
+SECRETS_DIR = BASE_DIR.parent.parent
+SECRETS_FNAME = SECRETS_DIR / 'svs/splice_variants_website_secrets.txt'
+with open(SECRETS_FNAME) as f:
+    lines = f.read().split('\n')
+    SECRET_KEY = lines[0].split('=')[1]
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -74,10 +75,17 @@ WSGI_APPLICATION = 'website.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+with open(SECRETS_DIR / 'svs/postgres_password.txt') as f:
+    postgres_password = f.read()
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'splice_variants_website',
+        'USER': 'postgres',
+        'PASSWORD': postgres_password,
+        'HOST': '127.0.0.1',
+        'PORT': '5433',
     }
 }
 
@@ -113,6 +121,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
 
 
 # Static files (CSS, JavaScript, Images)

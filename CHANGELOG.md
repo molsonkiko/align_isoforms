@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.5.0] - 2022-11-13
+
+1. Move data over to a PostgreSQL database.
+2. Add site map.
+3. Add ability to jump to and highlight a selected mass spec peptide in a sequence on the protein page.
+
 ## [0.4.0] - 2022-11-12
 
 1. Improved the website's protein view, adding location data for where each mass spec peptide is found in its protein.
