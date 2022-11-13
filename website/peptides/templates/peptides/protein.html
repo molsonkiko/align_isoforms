@@ -5,10 +5,18 @@
         <title>Protein detail for {{ protein.acc_num }}</title>
     </head>
     <body>
+        <h1>Protein {{ protein.acc_num }} detail</h1>
         <p><a href="/peptides">Back to proteins list</a></p>
         <p><a href="https://www.uniprot.org/uniprotkb/{{protein.acc_num}}/entry">
             UniProt entry for {{ protein.acc_num }}
         </a></p>
+        <p>
+            <a href="/peptides/proteins/{{ protein.acc_num }}/json">
+            Get all data for this protein as JSON
+            </a>
+            (view 
+            <a href = "/peptides/proteins/protein_json_schema">schema</a>)
+        </p>
         <p>Isoforms:</p>
         <ol>
         {% for isoform in isoforms %}
@@ -29,10 +37,10 @@
         <pre>
             {{ protein.sequence }}
         </pre>
-        <p>Peptides:</p>
+        <p>Mass spec peptides unique to this isoform:</p>
         <ul>
         {% for peptide in peptides %}
-            <li>{{ peptide.peptide }}</li>
+            <li>@{{ peptide.location }}: {{ peptide.peptide }}</li>
         {% endfor %}
         </ul>
     </body>

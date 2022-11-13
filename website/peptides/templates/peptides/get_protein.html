@@ -5,6 +5,7 @@
         <title>Get protein</title>
     </head>
     <body>
+        <h1>Find a new protein</h1>
         <p><a href="/peptides">Back to proteins list</a></p>
         <form action = "{% url 'peptides:get_protein'  %}" method = "POST">
             <!-- need csf_token in POST forms to avoid CSRF attacks -->
@@ -16,5 +17,37 @@
             </fieldset>
             <input type="submit" value="Request data">
         </form>
+        <div id="workflow_description">
+            <p>
+                To get the data on a protein's sequence, its isoforms, 
+                and its sequence alignment with its isoforms,
+                the following steps are taken:
+            </p>
+            <ol>
+                <li>
+                    Request data from the 
+                    <a href="https://rest.uniprot.org/docs/#/uniprotkb">
+                        UniProtKB REST API</a>
+                </li>
+                <li>
+                    Use the data to get the UniProt accession numbers
+                    of the protein's isoforms.
+                </li>
+                <li>
+                    Get the UniProt REST API data for each isoform.
+                    Now we have the sequence of every isoform of the protein.
+                </li>
+                <li>
+                    Use the European Bioinformatics Institute (EBI)'s
+                    <a href = "https://www.ebi.ac.uk/Tools/msa/clustalo/">CLUSTAL-Omega tool</a>
+                    to request a multiple sequence alignment of all the isoforms of the protein. 
+                </li>
+                <li>
+                    Finally, cross-reference the unique peptides found by
+                    (TODO: Insert the names of the people who found those unique peptides
+                    Les gave me)
+                </li>
+            </ol>
+        </div>
     </body>
 </html>

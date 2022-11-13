@@ -12,11 +12,27 @@ class Protein(BaseModel):
     sequence = models.CharField(max_length=45_000)
     # longest protein ever found is titin, with ~35,000 aa
 
+    class Meta:
+        indexes = [
+            models.Index(fields = ['acc_num'], name = 'acc_num_idx')
+        ]
+
     def __str__(self) -> str:
         return self.acc_num
 
     def __repr__(self) -> str:
         return 'Protein(%s)' % self.acc_num
+
+    def save(self, *args, **kwargs):
+        '''when protein saved, update the location of each associated 
+        peptide to reflect its location in the protein
+        '''
+        super().save(*args, **kwargs)
+        peptides = Peptide.objects.filter(prot = self.acc_num)
+        for peptide in peptides:
+            pep = peptide.peptide
+            peptide.location = self.sequence.index(pep)
+            peptide.save(force_update=True)
 
     def get_isoforms(self):
         '''Return all protein objects that are isoforms of self
@@ -53,7 +69,10 @@ class Protein(BaseModel):
     def get_peptides(self):
         '''Return all peptides (in the Peptide table) associated with self
         '''
-        return Peptide.objects.filter(prot = self.acc_num)
+        return (Peptide.objects
+            .filter(prot = self.acc_num)
+            .order_by('location')
+        )
 
 
 class Isoform(BaseModel):
@@ -74,12 +93,13 @@ class Alignment(BaseModel):
 class Peptide(BaseModel):
     prot = models.CharField(max_length=15)
     peptide = models.CharField(max_length=10_000)
+    location = models.IntegerField(default=-1)
 
     def __str__(self):
         if len(self.peptide) > 20:
             prot_abbrev = self.peptide[:17] + '...'
         else: prot_abbrev = self.peptide
-        return 'Peptide(%s, %s)' % (self.prot, prot_abbrev)
+        return 'Peptide(%s, %i, %s)' % (self.prot, self.location, prot_abbrev)
 
     __repr__ = __str__
     

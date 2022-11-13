@@ -36,6 +36,8 @@ def get_isoform_ids(prot: dict) -> list:
             if not iso_ids:
                 continue
             for iso_id in iso_ids:
+                if iso_id.endswith('-1'):
+                    iso_id = iso_id[:-2] # strip trailing '-1' off primary isoform
                 out.add(iso_id)
     return sorted(out)
 

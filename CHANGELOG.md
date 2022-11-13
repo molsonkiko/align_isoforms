@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.4.0] - 2022-11-12
+
+1. Improved the website's protein view, adding location data for where each mass spec peptide is found in its protein.
+2. Added a simple REST API that takes the UniProt accession number of a protein and returns the isoform IDs, sequence, multiple sequence alignment with isoforms, and mass spec peptide locations in its sequence. See [protein_json_example.json](/protein_json_example.json). The schema for this JSON is at [protein_json_schema.json](/website/peptides/static/peptides/protein_json_schema.json).
+3. Add the ability to download the alignment as a `clustal_num` text file from the alignment view.
+
 ## [0.3.0] - 2022-11-12
 
 1. Added a very simple, not-yet-production-ready website for including the peptides that Les found in his research and getting the isoforms and a multiple sequence alignment for any protein.

@@ -10,6 +10,9 @@
         <pre>
             {{alignment.alignment}}
         </pre>
+        <a class="button" href="/peptides/download_alignment/{{ alignment.prots }}">
+            Download alignment as text file
+        </a>
         <p>Associated proteins</p>
         <ol>
         {% for protein in proteins %}
@@ -18,11 +21,11 @@
             </li>
         {% endfor %}
         </ol>
-        <p>Associated peptides</p>
+        <p>Associated mass spec peptides</p>
         <ol>
         {% for peptide in peptides %}
             <li>
-                {{peptide.prot}}: {{peptide.peptide}}
+                {{peptide.prot}}@{{ peptide.location }}: {{ peptide.peptide }}
             </li>
         {% endfor %}
         </ol>

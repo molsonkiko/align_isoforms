@@ -1,9 +1,11 @@
-from django.http import HttpResponseRedirect
+import json
+import os
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 
-from .align_isoforms import get_all_prots, get_all_seqs, request_multi_alignment
+from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as get_protein_json
 
 from .models import Protein, Peptide, Isoform, Alignment
 
@@ -48,12 +50,17 @@ def get_protein(request):
             acc_num = acc_num[:-2]
         try:
             existing_prot = Protein.objects.get(acc_num = acc_num)
-            return HttpResponseRedirect(
+            return Http404(
                 reverse('peptides:proteins', args=(existing_prot.acc_num,))
             )
         except:
             pass
-        prots = get_all_prots(acc_num)
+        prot = get_protein_json(acc_num)
+        if not prot:
+            return HttpResponse(
+                "Could not find UniProt data for the accession number %s" % acc_num
+            )
+        prots = get_isoforms(prot)
         prot_seqs = get_all_seqs(prots)
         og_acc_num = acc_num
         og_prot = Protein(
@@ -91,7 +98,10 @@ def alignments_view(request, acc_nums: str):
     alignment = get_object_or_404(Alignment, pk=acc_nums)
     acc_num_list = acc_nums.split(',')
     prot_objs = Protein.objects.filter(acc_num__in = acc_num_list)
-    peptides =  Peptide.objects.filter(prot__in = acc_num_list)
+    peptides =  (Peptide.objects
+        .filter(prot__in = acc_num_list)
+        .order_by('prot', 'location')
+    )
     return render(
         request,
         'peptides/alignment.html',
@@ -100,4 +110,51 @@ def alignments_view(request, acc_nums: str):
             'proteins': prot_objs,
             'peptides': peptides,
         }
+    )
+
+
+def download_alignment(request, prots: str):
+    alignment = Alignment.objects.get(pk = prots)
+    primary_acc_num = alignment.prots.split(',')[0]
+    try:
+        dash_index = primary_acc_num.index('-')
+        # all isoforms have the same alignment as the primary isoform
+        primary_acc_num = primary_acc_num[:dash_index]
+    except: pass
+    # this disposition indicates that it should be downloaded with this default file name
+    disposition =  'attachment; filename = "isoforms of %s alignment.clustal_num"' % primary_acc_num
+    # this content-type indicates that this is a utf-8 text file
+    content_type = 'text; charset = "utf-8"'
+    return HttpResponse(
+        alignment.alignment,
+        headers = {'content-disposition': disposition, 'content-type': content_type},
+    )
+
+
+def get_protein_json(request, acc_num: str):
+    prot = Protein.objects.get(acc_num = acc_num)
+    isoform_ids = [iso.acc_num for iso in prot.get_isoforms()]
+    alignments = [al.alignment for al in prot.get_alignments()]
+    peptides = [{'location': pep.location, 'sequence': pep.peptide} 
+        for pep in prot.get_peptides()]
+    return HttpResponse(
+        json.dumps({
+            'UniProt ID': prot.acc_num,
+            'sequence': prot.sequence,
+            'Isoform UniProt IDs': isoform_ids,
+            'isoform alignments': alignments,
+            'mass spec peptides': peptides, 
+        }),
+        headers = {
+            'content-type': 'application/json',
+        }
+    )
+
+def get_protein_json_schema(request):
+    file_dir = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(file_dir, 'static/peptides/protein_json_schema.json')) as f:
+        schema = f.read()
+    return HttpResponse(
+        schema,
+        headers = {'content-type': 'application/json'}
     )
