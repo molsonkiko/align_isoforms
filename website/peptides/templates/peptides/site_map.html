@@ -7,13 +7,28 @@
         <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
     </head>
     <body>
-        <p><a href="/peptides"><pre>/peptides</pre></a>: Contains links to all proteins</p>
-        <p><pre>/peptides/proteins/&lt;UniProt accession number&gt;</pre>: Data for any protein already in the database. Example: <a href="/peptides/proteins/P56856">/peptides/proteins/P56856</a></p>
-        <p><pre>/peptides/proteins/&lt;UniProt accession number&gt;</pre>: JSON data for any protein already in the database. Example: <a href="/peptides/proteins/P56856/json">/peptides/proteins/P56856/json</a></p>
-        <p><a href = "/peptides/proteins/json_schema"><pre>/peptides/proteins/json_schema</pre></a>: <a href = "https://json-schema.org/">JSON schema</a> for the JSON returned by <pre>peptides/proteins/&lt;accession num&gt;</pre> json.</p>
-        <p><pre>/peptides/peptides?acc_num_like=&lt;UniProt accession number&gt;</pre>: Download a CSV file with the peptides associated with any protein whose UniProt accession number partially matches the query. Example: <a href="/peptides/peptides?acc_num_like=P56856">/peptides/peptides/acc_num_like=P56856</a> matches <pre>P56856</pre> and <pre>P56856-2</pre>.</p>
-        <p><pre>/peptides/peptides?acc_num=&lt;UniProt accession number&gt</pre>: Download a CSV file with the peptides associated with the protein that has exactly that UniProt accession number. Example: <a href="/peptides/peptides?acc_num=P56856">/peptides/peptides/acc_num=P56856</a> matches <pre>P56856</pre> only.</p>
-        <p><pre>/peptides/alignments/&lt;list of UniProt accession numbers&gt;</pre>: The alignment of the proteins with those UniProt accession numbers. Most conveniently accessed from the <pre>proteins</pre> page for one of those accession numbers.</p>
-        <p><a href="/peptides/get_protein"><pre>/peptides/get_protein</pre></a>: Enter a UniProt accession number, get its isoforms, peptides, and a sequence alignment with its isoforms.</p>
+        <p><a href="/peptides"><pre>/peptides?orderby=&lt;alpha|len|iso&gt;</pre></a>: Contains links to all proteins.
+            Can also add a query to order the proteins <a href="/peptides?orderby=alpha">alphabetically</a> by accession number, 
+            or <a href="/peptides?orderby=iso">by number of isoforms</a>, or <a href="/peptides?orderby=len">by sequence length</a>.</p>
+        <p><pre>/peptides/proteins/&lt;UniProt accession number&gt;</pre>: Data for any protein already in the database. 
+            Example: <a href="/peptides/proteins/P56856">/peptides/proteins/P56856</a></p>
+        <p><pre>/peptides/proteins/&lt;UniProt accession number&gt;</pre>: JSON data for any protein already in the database. 
+            Example: <a href="/peptides/proteins/P56856/json">/peptides/proteins/P56856/json</a></p>
+        <p><a href = "/peptides/proteins/json_schema"><pre>/peptides/proteins/json_schema</pre></a>: 
+            <a href = "https://json-schema.org/">JSON schema</a> for the JSON returned by 
+            <pre>peptides/proteins/&lt;accession num&gt;</pre> json.</p>
+        <p><pre>/peptides/peptides?acc_num_like=&lt;UniProt accession number&gt;</pre>: 
+            Download a CSV file with the peptides associated with any protein whose 
+            UniProt accession number partially matches the query. 
+            Example: <a href="/peptides/peptides?acc_num_like=P56856">/peptides/peptides/acc_num_like=P56856</a> 
+            matches <pre>P56856</pre> and <pre>P56856-2</pre>.</p>
+        <p><pre>/peptides/peptides?acc_num=&lt;UniProt accession number&gt</pre>: Download a CSV file with the 
+            peptides associated with the protein that has exactly that UniProt accession number. 
+            Example: <a href="/peptides/peptides?acc_num=P56856">/peptides/peptides/acc_num=P56856</a> matches <pre>P56856</pre> only.</p>
+        <p><pre>/peptides/alignments/&lt;list of UniProt accession numbers&gt;</pre>: 
+            The alignment of the proteins with those UniProt accession numbers. 
+            Most conveniently accessed from the <pre>proteins</pre> page for one of those accession numbers.</p>
+        <p><a href="/peptides/get_protein"><pre>/peptides/get_protein</pre></a>: 
+            Enter a UniProt accession number, get its isoforms, peptides, and a sequence alignment with its isoforms.</p>
     </body>
 </html>

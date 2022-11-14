@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.6.0] - 2022-11-13
+
+1. Greatly improve appearance of alignments page, allow jumping to mass spec peptides within the alignment while still making the alignment pretty easily readable. Still have some kinks to work out.
+2. Protein is now all in one line.
+3. Can reorder proteins in the index view. See site_map.html.
+
 ## [0.5.0] - 2022-11-13
 
 1. Move data over to a PostgreSQL database.

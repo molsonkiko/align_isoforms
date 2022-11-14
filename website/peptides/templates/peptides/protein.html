@@ -37,16 +37,14 @@
         {% endfor %}
         </ul>
         <p>Sequence (length {{seq_len}}):</p>
-        <p id = "sequence">
-        {% for chunk in sequence_chunks  %}
-            {% if chunk.is_pep %}
-                <span class="peptide" id="{{chunk.loc}}">
-                    {{ chunk.seq }}
-                </span>
-            {% else %}
-                {{ chunk.seq }}
-            {% endif %}
-        {% endfor %}
+        <p class = "sequence">
+        {% for chunk in sequence_chunks  %}<!--
+         -->{% if chunk.is_pep %}<!--
+             --><span class="peptide" id="{{chunk.loc}}">{{ chunk.seq }}</span><!--
+         -->{% else %}<!--
+             -->{{ chunk.seq }}<!--
+         -->{% endif %}<!--
+     -->{% endfor %}
         </p>
         <p>Mass spec peptides unique to this isoform:</p>
         <ul>

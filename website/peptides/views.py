@@ -6,31 +6,28 @@ from django.urls import reverse
 from django.views import generic
 
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
-
 from .models import Protein, Peptide, Isoform, Alignment
+from .sequence_chunkers import sequence_chunks, process_clustal_num
 
-class IndexView(generic.ListView):
-    template_name = "peptides/index.html"
-    context_object_name = 'proteins'
-
-    def get_queryset(self):
-        '''get only the primary isoform of each protein'''
-        return Protein.objects.exclude(acc_num__contains = '-')
-
-
-def sequence_chunks(seq: str, peptides: list[Peptide]):
-    '''Show sequence with spans highlighting each mass spec peptide'''
-    chunks = []
-    start = 0
-    end = 0
-    for pep in peptides:
-        end = pep.location
-        chunks.append({'seq': seq[start:end], 'is_pep': False})
-        chunks.append({'seq': pep.peptide, 'is_pep': True, 'loc': end})
-        start = end
-    chunks.append({'seq': seq[end:], 'is_pep': False})
-    return chunks
-
+def index_view(request):
+    '''Show only the primary isoforms of proteins in the database.
+    Optionally allow to order by length, by number of isoforms,
+    or alphabetically.
+    '''
+    proteins = Protein.objects.exclude(acc_num__contains = '-')
+    orderby = request.GET.get('orderby')
+    if orderby:
+        if orderby == 'alpha':
+            proteins = sorted(proteins, key = lambda x: x.acc_num)
+        elif orderby[:3] == 'iso':
+            proteins = sorted(proteins, key = lambda x: len(x.get_isoforms()))
+        elif orderby == 'len':
+            proteins = sorted(proteins, key = lambda x: len(x.sequence))
+    return render(
+        request,
+        'peptides/index.html',
+        context = {'proteins': proteins}
+    )
 
 def protein_view(request, acc_num: str):
     if acc_num.endswith('-1'):
@@ -117,16 +114,21 @@ def get_protein(request):
 def alignments_view(request, acc_nums: str):
     alignment = get_object_or_404(Alignment, pk=acc_nums)
     acc_num_list = acc_nums.split(',')
-    prot_objs = Protein.objects.filter(acc_num__in = acc_num_list)
+    prot_objs = (Protein.objects
+        .filter(acc_num__in = acc_num_list)
+        .order_by('acc_num')
+    )
     peptides =  (Peptide.objects
         .filter(prot__in = acc_num_list)
         .order_by('prot', 'location')
     )
+    alignment_pieces = process_clustal_num(alignment.alignment, peptides)
     return render(
         request,
         'peptides/alignment.html',
         context = {
-            'alignment': alignment,
+            'prots': alignment.prots,
+            'alignment_pieces': alignment_pieces,
             'proteins': prot_objs,
             'peptides': peptides,
         }

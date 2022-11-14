@@ -4,14 +4,35 @@
         <meta charset="utf-8">
         <title>Detail for alignment {{alignment.prots}}</title>
         <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
+        <link rel="stylesheet" type="text/css" href="/static/peptides/css/protein.css">
+        <script src="/static/peptides/js/alignment.js" defer></script>
     </head>
     <body>
         <p><a href="/peptides">Back to proteins list</a></p>
-        <p>Alignment {{alignment.prots}}</p>
-        <pre>
-            {{alignment.alignment}}
-        </pre>
-        <a class="button" href="/peptides/download_alignment/{{ alignment.prots }}">
+        <p>Alignment {{ prots }}</p>
+        <p id="header">
+            <span class="left-buffer"></span>{{ alignment_pieces.header }}
+        </p>
+        {% for chunk in alignment_pieces.chunks %}
+            <div class="chunk">
+            {% for prot_pieces in chunk %}
+                <p class = "sequence">
+                    <span class="left-buffer">{{ prot_pieces.acc_num }}</span>
+                    {% for piece in prot_pieces.chunk %}<!--
+                     -->{% if piece.is_pep %}<!--
+                         --><span class="peptide {{ piece.loc }}_{{ prot_pieces.acc_num }}" id="{{ piece.loc }}_{{ prot_pieces.acc_num }}_{{ piece.pep_num }}">{{ piece.seq }}</span><!--
+                     -->{% else %}<!--
+                         -->{{ piece.seq }}<!--
+                     -->{% endif %}<!--
+                 -->{% endfor %}
+                {% if prot_pieces.is_prot_chunk %}
+                    <span class="right-buffer"></span>{{ prot_pieces.chunk_end }} <!-- peptide number at end of line -->
+                {% endif %}
+                </p>
+            {% endfor %}
+            </div>
+            {% endfor %}
+        <a class="button" href="/peptides/download_alignment/{{ prots }}">
             Download alignment as text file
         </a>
         <p>Associated proteins</p>
@@ -26,7 +47,12 @@
         <ol>
         {% for peptide in peptides %}
             <li>
-                {{peptide.prot}}@{{ peptide.location }}: {{ peptide.peptide }}
+                <a href = "#{{peptide.location}}_{{peptide.prot}}_0"
+                    onclick = 'highlight_locs("{{ peptide.location }}_{{ peptide.prot }}"); 
+                        last_highlighted_locs = "{{ peptide.location }}_{{ peptide.prot }}"'>
+                    {{peptide.prot}}@{{ peptide.location }}
+                </a>:
+                {{ peptide.peptide }}
             </li>
         {% endfor %}
         </ol>
