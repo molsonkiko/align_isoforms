@@ -76,6 +76,7 @@ class Protein(BaseModel):
 
 
 class Isoform(BaseModel):
+    pkey = models.AutoField(primary_key=True)
     prot_1 = models.ForeignKey(Protein, on_delete=models.CASCADE, related_name='prot_1')
     prot_2 = models.ForeignKey(Protein, on_delete=models.CASCADE, related_name='prot_2')
 
@@ -91,6 +92,7 @@ class Alignment(BaseModel):
 
 
 class Peptide(BaseModel):
+    pkey = models.AutoField(primary_key=True)
     prot = models.CharField(max_length=15)
     peptide = models.CharField(max_length=10_000)
     location = models.IntegerField(default=-1)

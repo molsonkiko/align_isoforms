@@ -26,7 +26,10 @@ with open(SECRETS_FNAME) as f:
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = [] # ['127.0.0.1']
+# for whatever reason, using '127.0.0.1' as the allowed host was
+# making it so that my static files were cached forever and couldn't
+# be refreshed.
 
 
 # Application definition
@@ -136,3 +139,10 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CACHES = {
+    'default': { 
+        # use this during development when you don't want any caching
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}

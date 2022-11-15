@@ -10,9 +10,11 @@
     <a href="get_protein">Find a new protein</a>
     <p>Proteins so far:</p>
     <ul>
-    {% for prot in proteins %}
+    {% for prot_datum in prot_data %}
         <li>
-            <a href="proteins/{{prot.acc_num}}">{{prot.acc_num}}</a>
+            <a href="proteins/{{prot_datum.acc_num}}">{{prot_datum.acc_num}}</a>: 
+            (length {{ prot_datum.lenseq }}, {{ prot_datum.n_isoforms }} isoforms, 
+                {{ prot_datum.npeps }} peptides)
         </li>
     {% endfor %}
     </ul>

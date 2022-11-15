@@ -1,22 +1,92 @@
 import re
-# from gorp import gprint
+import json
 
-def sequence_chunks(seq: str, peptides):
+def sequence_chunks(seq: str, peps, width: int):
     '''Show sequence with spans highlighting each mass spec peptide
     '''
     chunks = []
+    pieces = []
     start = 0
     end = 0
-    for pep in peptides:
-        end = pep.location
-        chunks.append({'seq': seq[start:end], 'is_pep': False})
-        chunks.append({'seq': pep.peptide, 'is_pep': True, 'loc': end})
-        start = end
-    chunks.append({'seq': seq[end:], 'is_pep': False})
+    npeps = len(peps)
+    if npeps == 0:
+        pieces.append({'seq': seq[:width], 'is_pep': False})
+        start = width
+        end = width * 2
+        chunks.append(pieces)
+        while start < len(seq):
+            pieces = [{'seq': seq[start:end], 'is_pep': False}]
+            chunks.append(pieces)
+            start = end
+            end += width
+        # print(json.dumps(chunks, indent = 4))
+        return chunks
+    loc = 0
+    pep_idx = 0
+    subseq = ''
+    cur_pep = peps[0]
+    end = cur_pep.location
+    is_pep = False
+    cutoff = False
+    for ii, char in enumerate(seq):
+        if ii % width == 0 and ii != 0:
+            pep = {
+                'seq': subseq, 
+                'is_pep': is_pep,
+            }
+            if is_pep:
+                pep['loc'] = start
+                pep['pep_num'] = 0
+            cutoff = True
+            pieces.append(pep)
+            subseq = ''
+            chunks.append(pieces)
+            pieces = []
+        if char == '-':
+            subseq += char
+            continue
+        if loc >= end:
+            if loc == end:
+                pep = {
+                    'seq': subseq, 
+                    'is_pep': is_pep,
+                }
+                if is_pep:
+                    pep['loc'] = start
+                    pep['pep_num'] = int(cutoff)
+                cutoff = False
+                pieces.append(pep)
+                subseq = ''
+                start = end
+            else:
+                start = loc - 1
+            if is_pep:
+                pep_idx += 1
+                if pep_idx < npeps:
+                    cur_pep = peps[pep_idx]
+                    end = cur_pep.location
+                else:
+                    end = len(seq)
+            else:
+                end = cur_pep.location + len(cur_pep.peptide)
+                start = cur_pep.location
+            is_pep = not is_pep
+        loc += 1
+        subseq += char
+    pep = {
+        'seq': subseq, 
+        'is_pep': is_pep,
+    }
+    if is_pep:
+        pep['loc'] = start
+        pep['pep_num'] = int(cutoff)
+    pieces.append(pep)
+    chunks.append(pieces)
+    # print(json.dumps(chunks, indent = 4))
     return chunks
 
 
-def process_clustal_num(clustal: str, peptides):
+def process_clustal_num(clustal: str, peptides, width: int):
     chunks = re.split('\n{2,3}', clustal)
     header = chunks[0]
     seq_map = {}
@@ -42,91 +112,9 @@ def process_clustal_num(clustal: str, peptides):
             .filter(prot = acc_num)
             .order_by('location')
         )
-        npeps = len(peps)
-        chunks = []
-        pieces = []
-        if npeps == 0:
-            pieces.append({'seq': seq[:60], 'is_pep': False})
-            start = 60
-            end = 120
-            while end < len(seq):
-                chunks.append(pieces)
-                pieces = [{'seq': seq[start:end], 'is_pep': False}]
-                start = end
-                end += 60
-            chunks.append([{'seq': seq[end:], 'is_pep': False}])
-            prots.append({
-                'acc_num': acc_num,
-                'chunks': chunks
-            })
-            nchunks = max(nchunks, len(chunks))
-            continue
-        loc = 0
-        pep_idx = 0
-        subseq = ''
-        cur_pep = peps[0]
-        start = 0
-        end = cur_pep.location
-        is_pep = False
-        cutoff = False
-        for ii, char in enumerate(seq):
-            if ii % 60 == 0 and ii != 0:
-                pep = {
-                    'seq': subseq, 
-                    'is_pep': is_pep,
-                }
-                if is_pep:
-                    pep['loc'] = start
-                    pep['pep_num'] = 0
-                cutoff = True
-                pieces.append(pep)
-                subseq = ''
-                chunks.append(pieces)
-                pieces = []
-            if char == '-':
-                subseq += char
-                continue
-            if loc >= end:
-                if loc == end:
-                    pep = {
-                        'seq': subseq, 
-                        'is_pep': is_pep,
-                    }
-                    if is_pep:
-                        pep['loc'] = start
-                        pep['pep_num'] = int(cutoff)
-                    cutoff = False
-                    pieces.append(pep)
-                    subseq = ''
-                    start = end
-                else:
-                    start = loc - 1
-                if is_pep:
-                    pep_idx += 1
-                    if pep_idx < npeps:
-                        cur_pep = peps[pep_idx]
-                        end = cur_pep.location
-                    else:
-                        end = len(seq)
-                else:
-                    end = cur_pep.location + len(cur_pep.peptide)
-                is_pep = not is_pep
-            loc += 1
-            subseq += char
-        pep = {
-            'seq': subseq, 
-            'is_pep': is_pep,
-        }
-        if is_pep:
-            pep['loc'] = start
-            pep['pep_num'] = int(cutoff)
-        pieces.append(pep)
-        chunks.append(pieces)
-        nchunks = max(nchunks, len(chunks))
-        prots.append({
-            'acc_num': acc_num,
-            'chunks': chunks,
-        })
+        chunks_this_seq = sequence_chunks(seq, peps, width)
+        nchunks = max(len(chunks_this_seq), nchunks)
+        prots.append({'acc_num': acc_num, 'chunks': chunks_this_seq})
     group_by_chunk = []
     old_chunk_ends = {}
     for ii in range(nchunks):
@@ -135,7 +123,7 @@ def process_clustal_num(clustal: str, peptides):
             try:
                 chunk = prot['chunks'][ii]
             except IndexError:
-                continue
+                chunk = [{'seq': ''}]
             acc_num = '' if prot['acc_num'] == 'zzzz' else prot['acc_num']
             old_chunk_ends.setdefault(acc_num, 0)
             old_chunk_end = old_chunk_ends[acc_num]
@@ -149,5 +137,5 @@ def process_clustal_num(clustal: str, peptides):
             })
             old_chunk_ends[acc_num] = chunk_end
         group_by_chunk.append(curchunk)
-    # gprint.gprint(group_by_chunk)
+    # print(json.dumps(group_by_chunk, indent = 4))
     return {'header': header, 'chunks': group_by_chunk}

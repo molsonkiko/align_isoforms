@@ -1,10 +1,6 @@
-body {
-    overflow-x: scroll;
-}
-
-p.sequence {
-    font-family: 'Courier New', Courier, monospace;
-    white-space: pre-nowrap;
+.sequence {
+    font-family: monospace;
+    white-space: pre-wrap;
     font-size: 16px;
 }
 
@@ -13,12 +9,16 @@ span.left-buffer {
     display: inline-block;
 }
 
-span.right-buffer {
-    width: 50px;
+span.right {
+    position: absolute;
     display: inline-block;
 }
 
 div.chunk {
     margin-top: 21px;
     margin-bottom: 21px;
+}
+
+a.peptide-link:visited {
+    color: red;
 }

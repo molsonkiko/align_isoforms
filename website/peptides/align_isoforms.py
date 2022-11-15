@@ -78,13 +78,15 @@ def get_all_seqs(prots: dict) -> dict:
     '''
     return {k: get_sequence(v) for k, v in prots.items()}
 
-def to_fasta(seqs: dict) -> str:
+def to_fasta(seqs: dict, sort: bool = True) -> str:
     '''seqs: an {accession number -> UniProt API JSON} dict returned by
     get_all_prots.
     Returns: The accession numbers and sequences of those proteins in FASTA
     format.
     '''
     fasta = ''
+    if sort:
+        seqs = dict(sorted(seqs.items(), key = lambda x: x[0]))
     for acc_num, seq in seqs.items():
         seqrec = SeqRecord(Seq(seq))
         seqrec.id = acc_num

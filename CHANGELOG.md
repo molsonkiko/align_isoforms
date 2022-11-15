@@ -15,11 +15,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  
 ### To Be Changed
 
-- nothing known
+- Consider allowing one-line display of protein sequence. Not sure why I'd want to do this.
+- Add automated testing of UI.
  
 ### To Be Fixed
 
 - nothing known
+
+## [0.7.0] - 2022-11-14
+
+1. Fix bugs in database.
+2. Further enhance proteins and alignments views. Can adjust number of amino acids per line.
+3. Allow highlighting of all peptides simulaneously (button in alignment and protein form).
+4. Add some basic tests.
 
 ## [0.6.0] - 2022-11-13
 

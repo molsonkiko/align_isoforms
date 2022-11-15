@@ -3,33 +3,45 @@ import os
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views import generic
+from django.views.decorators.cache import never_cache
 
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
 from .models import Protein, Peptide, Isoform, Alignment
 from .sequence_chunkers import sequence_chunks, process_clustal_num
 
+@never_cache
 def index_view(request):
     '''Show only the primary isoforms of proteins in the database.
     Optionally allow to order by length, by number of isoforms,
     or alphabetically.
     '''
     proteins = Protein.objects.exclude(acc_num__contains = '-')
-    orderby = request.GET.get('orderby')
-    if orderby:
-        if orderby == 'alpha':
-            proteins = sorted(proteins, key = lambda x: x.acc_num)
-        elif orderby[:3] == 'iso':
-            proteins = sorted(proteins, key = lambda x: len(x.get_isoforms()))
-        elif orderby == 'len':
-            proteins = sorted(proteins, key = lambda x: len(x.sequence))
+    data = [
+        {
+            'acc_num': prot.acc_num,
+            'npeps': len(prot.get_peptides()),
+            'lenseq': len(prot.sequence),
+            'n_isoforms': len(prot.get_isoforms()) + 1,
+        }
+        for prot in proteins
+    ]
+    orderby = request.GET.get('orderby', 'alpha')
+    if orderby == 'alpha':
+        data = sorted(data, key = lambda x: x['acc_num'])
+    elif orderby[:3] == 'iso':
+        data = sorted(data, key = lambda x: x['n_isoforms'])
+    elif orderby == 'len':
+        data = sorted(data, key = lambda x: x['lenseq'])
     return render(
         request,
         'peptides/index.html',
-        context = {'proteins': proteins}
+        context = {'prot_data': data}
     )
 
+@never_cache
 def protein_view(request, acc_num: str):
+    width = int(request.GET.get('width', 120))
+    num_offset = 10 + 9 * width
     if acc_num.endswith('-1'):
         acc_num = acc_num[:-2]
         # the primary isoform may end with '-1', but it doesn't
@@ -38,6 +50,14 @@ def protein_view(request, acc_num: str):
     alignments = prot.get_alignments()
     isoforms = prot.get_isoforms()
     peptides = prot.get_peptides()
+    chunks = sequence_chunks(prot.sequence, peptides, width)
+    annotated_chunks = []
+    chunk_end = 0
+    for chunk in chunks:
+        chunk_end += sum(len(p['seq']) for p in chunk)
+        annotated_chunks.append(
+            {'chunk': chunk, 'chunk_end': chunk_end}
+        )
     return render(
         request,
         template_name='peptides/protein.html',
@@ -46,12 +66,60 @@ def protein_view(request, acc_num: str):
             'alignments': alignments,
             'isoforms': isoforms,
             'peptides': peptides,
-            'sequence_chunks': sequence_chunks(prot.sequence, peptides),
+            'sequence_chunks': annotated_chunks,
             'seq_len': len(prot.sequence),
+            'num_offset': num_offset,
         }
     )
 
 
+def get_all_data_related_to_prot(acc_num: str) -> bool:
+    '''Get all isoforms of protein with UniProt accession number acc_num,
+    get a multiple sequence alignment of those isoforms,
+    and for each peptide in the database that belongs to one of the isoforms,
+    get its location in the sequence of that isoform.
+    '''
+    # get uniprot data for the protein and save it to the database
+    prot = uniprot_json(acc_num)
+    if not prot:
+        return False
+    og_acc_num = acc_num
+    # now get all the uniprot data for all the isoforms of the protein 
+    prots = get_isoforms(prot)
+    prot_seqs = get_all_seqs(prots)
+    og_prot = Protein(
+        acc_num = og_acc_num, 
+        sequence = prot_seqs[og_acc_num]
+    )
+    og_prot.save(force_insert=True)
+    prot_list = og_acc_num
+    # add each isoform to the database
+    for acc_num, seq in prot_seqs.items():
+        if acc_num == og_acc_num:
+            continue
+        if acc_num.endswith('-1'):
+            acc_num = acc_num[:-2]
+        prot = Protein(
+            acc_num = acc_num, 
+            sequence = seq
+        )
+        prot_list += ',' + acc_num
+        prot.save(force_insert=True)
+        # also add a relationschip between og_prot and new prot
+        Isoform.objects.create(
+            prot_1 = Protein.objects.get(acc_num = og_acc_num),
+            prot_2 = Protein.objects.get(acc_num = acc_num)
+        )
+    try:
+        # finally, get a multiple sequence alignment of all the isoforms
+        alignment = request_multi_alignment(prot_seqs)
+        Alignment.objects.create(prots = prot_list, alignment = alignment)
+    except:
+        pass
+    return True
+
+
+@never_cache
 def get_protein(request):
     try:
         acc_num = request.POST['acc_num']
@@ -65,53 +133,21 @@ def get_protein(request):
             return HttpResponseRedirect(
                 reverse('peptides:proteins', args=(existing_prot.acc_num,))
             )
-        except:
+        except: # no existing prot, so get the data
             pass
-        # get uniprot data for the protein and save it to the database
-        prot = uniprot_json(acc_num)
-        if not prot:
+        if not get_all_data_related_to_prot(acc_num):
             return HttpResponse(
-                "Could not find UniProt data for the accession number %s" % acc_num
+                "Could not find UniProt data for the accession number " + acc_num
             )
-        og_acc_num = acc_num
-        # now get all the uniprot data for all the isoforms of the protein 
-        prots = get_isoforms(prot)
-        prot_seqs = get_all_seqs(prots)
-        og_prot = Protein(
-            acc_num = og_acc_num, 
-            sequence = prot_seqs[og_acc_num]
-        )
-        og_prot.save(force_insert=True)
-        prot_list = og_acc_num
-        # add each isoform to the database
-        for acc_num, seq in prot_seqs.items():
-            if acc_num == og_acc_num:
-                continue
-            if acc_num.endswith('-1'):
-                acc_num = acc_num[:-2]
-            prot = Protein(
-                acc_num = acc_num, 
-                sequence = seq
-            )
-            prot_list += ',' + acc_num
-            prot.save(force_insert=True)
-            # also add a relationschip between og_prot and new prot
-            Isoform.objects.create(
-                prot_1 = Protein.objects.get(acc_num = og_acc_num),
-                prot_2 = Protein.objects.get(acc_num = acc_num)
-            )
-        try:
-            # finally, get a multiple sequence alignment of all the isoforms
-            alignment = request_multi_alignment(prot_seqs)
-            Alignment.objects.create(prots = prot_list, alignment = alignment)
-        except:
-            pass
         return HttpResponseRedirect(
-            reverse('peptides:proteins', args=(og_prot.acc_num,))
+            reverse('peptides:proteins', args=(acc_num,))
         )
 
 
+@never_cache
 def alignments_view(request, acc_nums: str):
+    width = int(request.GET.get('width', 60))
+    num_offset = 120 + 9 * width
     alignment = get_object_or_404(Alignment, pk=acc_nums)
     acc_num_list = acc_nums.split(',')
     prot_objs = (Protein.objects
@@ -122,7 +158,7 @@ def alignments_view(request, acc_nums: str):
         .filter(prot__in = acc_num_list)
         .order_by('prot', 'location')
     )
-    alignment_pieces = process_clustal_num(alignment.alignment, peptides)
+    alignment_pieces = process_clustal_num(alignment.alignment, peptides, width)
     return render(
         request,
         'peptides/alignment.html',
@@ -131,10 +167,12 @@ def alignments_view(request, acc_nums: str):
             'alignment_pieces': alignment_pieces,
             'proteins': prot_objs,
             'peptides': peptides,
+            'num_offset': num_offset,
         }
     )
 
 
+@never_cache
 def download_alignment(request, prots: str):
     alignment = Alignment.objects.get(pk = prots)
     primary_acc_num = alignment.prots.split(',')[0]
@@ -153,6 +191,7 @@ def download_alignment(request, prots: str):
     )
 
 
+@never_cache
 def protein_json(request, acc_num: str):
     prot = Protein.objects.get(acc_num = acc_num)
     isoform_ids = [iso.acc_num for iso in prot.get_isoforms()]

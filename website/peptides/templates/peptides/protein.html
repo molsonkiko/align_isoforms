@@ -5,7 +5,7 @@
         <title>Protein detail for {{ protein.acc_num }}</title>
         <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
         <link rel="stylesheet" type="text/css" href="/static/peptides/css/protein.css">
-        <script src="/static/peptides/js/protein.js" defer></script>
+        <script src="/static/peptides/js/peptide_highlight.js" defer></script>
     </head>
     <body>
         <h1>Protein {{ protein.acc_num }} detail</h1>
@@ -37,22 +37,35 @@
         {% endfor %}
         </ul>
         <p>Sequence (length {{seq_len}}):</p>
-        <p class = "sequence">
-        {% for chunk in sequence_chunks  %}<!--
-         -->{% if chunk.is_pep %}<!--
-             --><span class="peptide" id="{{chunk.loc}}">{{ chunk.seq }}</span><!--
-         -->{% else %}<!--
-             -->{{ chunk.seq }}<!--
-         -->{% endif %}<!--
-     -->{% endfor %}
-        </p>
+        <div class="chunk">
+        {% for prot_pieces in sequence_chunks %}
+            <p class = "sequence"><!--
+             -->{% for piece in prot_pieces.chunk %}<!--
+                 -->{% if piece.is_pep %}<!--
+                     --><span class="peptide {{ piece.loc }}" 
+                              id="{{ piece.loc }}_{{ piece.pep_num }}">{{ piece.seq }}</span><!--
+                 -->{% else %}<!--
+                     -->{{ piece.seq }}<!--
+                 -->{% endif %}<!--
+             -->{% endfor %}<!--
+         --><span class="right" style="left:{{ num_offset }}px">{{ prot_pieces.chunk_end }}</span><!-- peptide number at end of line
+         --></p>
+        {% endfor %}
+        </div>
+        <button onclick = "highlight_all_peptides();">
+            Highlight all peptides
+        </button>
         <p>Mass spec peptides unique to this isoform:</p>
         <ul>
         {% for peptide in peptides %}
-            <li><a href="#{{peptide.location}}"
-                onclick = 'highlight_loc("{{peptide.location}}"); last_highlighted_loc = "{{peptide.location}}"'>
-                @{{ peptide.location }}
-            </a>: {{ peptide.peptide }}</li>
+            <li>
+                <a class = "peptide-link" href = "#{{peptide.location}}_0"
+                    onclick = 'highlight_locs("{{ peptide.location }}"); 
+                        last_highlighted_locs = "{{ peptide.location }}"'>
+                    @{{ peptide.location }}
+                </a>:
+                <span class="sequence">{{ peptide.peptide }}</span>
+            </li>
         {% endfor %}
         </ul>
     </body>
