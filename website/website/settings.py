@@ -126,7 +126,7 @@ USE_TZ = True
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = False
+CSRF_TRUSTED_ORIGINS = ['https://alignisoforms-production.up.railway.app']
 
 
 # Static files (CSS, JavaScript, Images)
