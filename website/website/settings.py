@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') != 'False' 
 
-ALLOWED_HOSTS = ['https://alignisoforms-production.up.railway.app/', '127.0.0.1']
+ALLOWED_HOSTS = ['alignisoforms-production.up.railway.app', '127.0.0.1']
 
 
 # Application definition
