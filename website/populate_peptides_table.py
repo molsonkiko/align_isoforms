@@ -5,12 +5,12 @@ df = (pd.read_csv('peptides/static/peptides/unique_peptides_per_acc_num.csv')
     .rename({'acc_num': 'prot', 'peps': 'peptide'}, axis = 1))
 df['location'] = -1
 
-port = '5433'
 username = 'postgres'
-dbname = 'splice_variants_website'
-with open(r'..\..\svs\postgres_password.txt') as f:
-    password = f.read()
-conn_str = f'postgresql+psycopg2://postgres:{password}@localhost:{port}/{dbname}'
+password = input('Enter the password for the postgres database: ')
+host = input('Enter the host: ')
+port = input('Enter the port: ')
+dbname = 'railway'
+conn_str = f'postgresql+psycopg2://{username}:{password}@{host}:{port}/{dbname}'
 
 engine = create_engine(conn_str)
 with engine.connect() as conn:
