@@ -3,13 +3,14 @@
     <head>
         <meta charset="utf-8">
         <title>Detail for alignment {{alignment.prots}}</title>
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/protein.css">
-        <script src="/static/peptides/js/peptide_highlight.js" defer></script>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'peptides/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'peptides/css/protein.css' %}">
+        <script src="{% static 'peptides/js/peptide_highlight.js' %}" defer></script>
     </head>
     <body>
-        <p><a href="/peptides">Back to proteins list</a></p>
-        <p>Alignment {{ prots }}</p>
+        <h1>Alignment {{ prots }}</h1>
+        <p><a href="/">Back to proteins list</a></p>
         <p id="header">
             <span class="left-buffer"></span>{{ alignment_pieces.header }}
         </p>
@@ -33,14 +34,14 @@
             {% endfor %}
             </div>
             {% endfor %}
-        <a class="button" href="/peptides/download_alignment/{{ prots }}">
+        <a class="button" href="/download_alignment/{{ prots }}">
             Download alignment as text file
         </a>
         <p>Associated proteins</p>
         <ol>
         {% for protein in proteins %}
             <li>
-                <a href = "/peptides/proteins/{{protein.acc_num}}">{{protein.acc_num}}</a>
+                <a href = "/proteins/{{protein.acc_num}}">{{protein.acc_num}}</a>
             </li>
         {% endfor %}
         </ol>
@@ -52,8 +53,7 @@
         {% for peptide in peptides %}
             <li>
                 <a class = "peptide-link" href = "#{{peptide.location}}_{{peptide.prot}}_0"
-                    onclick = 'highlight_locs("{{ peptide.location }}_{{ peptide.prot }}"); 
-                        last_highlighted_locs = "{{ peptide.location }}_{{ peptide.prot }}"'>
+                    onclick = 'highlight_locs("{{ peptide.location }}_{{ peptide.prot }}");'>
                     {{peptide.prot}}@{{ peptide.location }}
                 </a>:
                 <span class="sequence">{{ peptide.peptide }}</span>

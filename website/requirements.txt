@@ -1,4 +1,7 @@
 biopython
 django
+dj-database-url
+gunicorn
 pandas
 requests
+sqlalchemy

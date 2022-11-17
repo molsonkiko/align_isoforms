@@ -1,13 +1,16 @@
 import json
 import os
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+import re
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
-from .models import Protein, Peptide, Isoform, Alignment
+from .models import Protein, Peptide, Isoform, Alignment, is_acc_num
 from .sequence_chunkers import sequence_chunks, process_clustal_num
+
+CODE_DIR = os.path.join(os.path.dirname(__file__))
 
 @never_cache
 def index_view(request):
@@ -15,7 +18,7 @@ def index_view(request):
     Optionally allow to order by length, by number of isoforms,
     or alphabetically.
     '''
-    proteins = Protein.objects.exclude(acc_num__contains = '-')
+    proteins = Protein.objects.filter(isoform_num = 1)
     data = [
         {
             'acc_num': prot.acc_num,
@@ -152,7 +155,7 @@ def alignments_view(request, acc_nums: str):
     acc_num_list = acc_nums.split(',')
     prot_objs = (Protein.objects
         .filter(acc_num__in = acc_num_list)
-        .order_by('acc_num')
+        .order_by('isoform_num')
     )
     peptides =  (Peptide.objects
         .filter(prot__in = acc_num_list)
@@ -198,28 +201,21 @@ def protein_json(request, acc_num: str):
     alignments = [al.alignment for al in prot.get_alignments()]
     peptides = [{'location': pep.location, 'sequence': pep.peptide} 
         for pep in prot.get_peptides()]
-    return HttpResponse(
-        json.dumps({
+    return JsonResponse(
+        {
             'UniProt ID': prot.acc_num,
             'sequence': prot.sequence,
             'Isoform UniProt IDs': isoform_ids,
             'isoform alignments': alignments,
             'mass spec peptides': peptides, 
-        }),
-        headers = {
-            'content-type': 'application/json',
         }
     )
 
 
 def protein_json_schema(request):
-    file_dir = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(file_dir, 'static/peptides/protein_json_schema.json')) as f:
-        schema = f.read()
-    return HttpResponse(
-        schema,
-        headers = {'content-type': 'application/json'}
-    )
+    with open(os.path.join(CODE_DIR, 'static/peptides/protein_json_schema.json')) as f:
+        schema = json.load(f)
+    return JsonResponse(schema)
 
 
 def peptides_csv(request):
@@ -234,12 +230,16 @@ def peptides_csv(request):
     acc_num_like = request.GET.get('acc_num_like', '')
     acc_num = request.GET.get('acc_num', '')
     if acc_num_like:
+        if not re.fullmatch(r'[A-Z\d-]{6,10}', acc_num_like):
+            return HttpResponse('Invalid accession number pattern')
         filename =  'peptides of uniprot ids like %s.csv' % acc_num_like
         peptides = (Peptide.objects
             .filter(prot__contains = acc_num_like)
             .order_by('prot', 'location')
         )
     elif acc_num:
+        if not is_acc_num(acc_num):
+            return HttpResponse('Invalid accession number')
         filename = 'peptides of uniprot id %s.csv' % acc_num
         peptides = (Peptide.objects
             .filter(prot = acc_num)
@@ -248,6 +248,25 @@ def peptides_csv(request):
     else:
         filename = 'peptides.csv'
         peptides = Peptide.objects.order_by('prot', 'location')
+        if len(peptides) == 0:
+            return HttpResponse('There are no peptides currently in the database.')
+    if len(peptides) == 0:
+        prots_with_acc_num = None
+        if acc_num:
+            prots_with_acc_num = Protein.objects.filter(acc_num = acc_num)
+            if prots_with_acc_num:
+                return HttpResponse(
+                    ('A protein in the database has that accession number, '
+                    'but no peptides in the database are associated with it.')
+                )
+        elif acc_num_like:
+            prots_with_acc_num = Protein.objects.filter(acc_num__contains = acc_num)
+            if prots_with_acc_num:
+                return HttpResponse(
+                    ('At least one protein in the database has that accession number, '
+                    'but no peptides in the database are associated with them.')
+                )
+        return HttpResponse('No proteins match that query.')
     csv = 'uniprot_id,location,sequence\n'
     for pep in peptides:
         csv += '%s,%s,%s\n' % (pep.prot, pep.location, pep.peptide)

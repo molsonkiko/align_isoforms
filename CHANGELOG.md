@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.9.0] - 2022-11-17
+
+1. Get ready for deployment.
+2. Add tests.
+3. Remove unnecessary /peptides from the beginning of each address, so the index is the first view you come to, and e.g. `/proteins/P56856` takes you to a protein rather than `/peptides/proteins/P56856`.
+
+## [0.8.0] - 2022-11-14
+
+1. Add data validation for accession number on `peptides\get_protein` form. Now must conform to the regular expression found [here](https://www.uniprot.org/help/accession_numbers).
+
 ## [0.7.0] - 2022-11-14
 
 1. Fix bugs in database.

@@ -1,3 +1,4 @@
+import re
 from django.db import models
 
 class BaseModel(models.Model):
@@ -6,10 +7,24 @@ class BaseModel(models.Model):
         abstract = True
 
 
+is_acc_num = re.compile(
+    ("(?:[OPQ][0-9][A-Z0-9]{3}[0-9]" # first style, e.g., P56856
+    "|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})" # second style, e.g., A2BC19, A0A023GPI8
+    "(?:-([1-9][0-9]*))?") # optional isoform number, e.g., -2, -10
+).fullmatch
+
+def isoform_num(acc_num: str) -> int:
+    acc_num_split = acc_num.split('-')
+    if len(acc_num_split) == 1:
+        return 1
+    return int(acc_num_split[1])
+
+
 class Protein(BaseModel):
     prot_id = models.AutoField(primary_key=True)
     acc_num = models.CharField(max_length=15, unique=True)
     sequence = models.CharField(max_length=45_000)
+    isoform_num = models.IntegerField(default = 1)
     # longest protein ever found is titin, with ~35,000 aa
 
     class Meta:
@@ -25,8 +40,11 @@ class Protein(BaseModel):
 
     def save(self, *args, **kwargs):
         '''when protein saved, update the location of each associated 
-        peptide to reflect its location in the protein
+        peptide to reflect its location in the protein.
+        Also save the isoform number of the protein 
+        (e.g., BLUTEN-1 has isoform # 1, BLUTEN-3 has isoform # 3)
         '''
+        self.isoform_num = isoform_num(self.acc_num)
         super().save(*args, **kwargs)
         peptides = Peptide.objects.filter(prot = self.acc_num)
         for peptide in peptides:
@@ -56,7 +74,7 @@ class Protein(BaseModel):
             acc_nums.add(iso.prot_2.acc_num)
         acc_nums.remove(self.acc_num)
         return (Protein.objects.filter(acc_num__in = acc_nums)
-            .order_by('acc_num'))
+            .order_by('isoform_num'))
 
 
     def get_alignments(self):
@@ -87,7 +105,7 @@ class Isoform(BaseModel):
 
 
 class Alignment(BaseModel):
-    prots = models.CharField(max_length=250, primary_key=True)
+    prots = models.CharField(max_length=300, primary_key=True)
     alignment = models.CharField(max_length=720_000)
 
 

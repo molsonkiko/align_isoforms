@@ -3,18 +3,24 @@
     <head>
         <meta charset="utf-8">
         <title>Get protein</title>
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'peptides/css/main.css' %}">
     </head>
     <body>
         <h1>Find a new protein</h1>
-        <p><a href="/peptides">Back to proteins list</a></p>
+        <p><a href="/">Back to proteins list</a></p>
         <form action = "{% url 'peptides:get_protein'  %}" method = "POST">
             <!-- need csf_token in POST forms to avoid CSRF attacks -->
             {% csrf_token %}
             <fieldset>
                 <p><strong>Choose a protein accession number</strong></p>
-                <input type="text" name="acc_num" id="acc_num">
-                <label for="acc_num">Accession number</label>
+                <input type="text" minlength="6" maxlength="10" required="required"
+                pattern = "(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})(?:-([1-9][0-9]*))?"
+                name="acc_num" id="acc_num">
+                <label for="acc_num">
+                <a href="https://www.uniprot.org/help/accession_numbers">
+                    Accession number
+                </a></label>
             </fieldset>
             <input type="submit" value="Request data">
         </form>
@@ -44,9 +50,7 @@
                     to request a multiple sequence alignment of all the isoforms of the protein. 
                 </li>
                 <li>
-                    Finally, cross-reference the unique peptides found by
-                    (TODO: Insert the names of the people who found those unique peptides
-                    Les gave me)
+                    Finally, cross-reference the unique peptides found by <a href="https://doi.org/10.1016/j.cell.2020.06.013">Gillette et al.</a> (2020, Cell 182, 200–225 July 9, 2020)
                 </li>
             </ol>
         </div>

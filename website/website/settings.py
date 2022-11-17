@@ -9,7 +9,11 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import os
 from pathlib import Path
+import re
+
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,17 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 SECRETS_DIR = BASE_DIR.parent.parent
-SECRETS_FNAME = SECRETS_DIR / 'svs/splice_variants_website_secrets.txt'
-with open(SECRETS_FNAME) as f:
-    lines = f.read().split('\n')
-    SECRET_KEY = lines[0].split('=')[1]
 
-DEBUG = True
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
-ALLOWED_HOSTS = [] # ['127.0.0.1']
-# for whatever reason, using '127.0.0.1' as the allowed host was
-# making it so that my static files were cached forever and couldn't
-# be refreshed.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') != 'False' 
+
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -46,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,8 +78,7 @@ WSGI_APPLICATION = 'website.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-with open(SECRETS_DIR / 'svs/postgres_password.txt') as f:
-    postgres_password = f.read()
+postgres_password = os.environ['POSTGRES_PWD']
 
 DATABASES = {
     'default': {
@@ -92,6 +91,8 @@ DATABASES = {
     }
 }
 
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -125,8 +126,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = False
 
 
@@ -134,6 +135,10 @@ SECURE_SSL_REDIRECT = False
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -146,3 +151,8 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
+
+IGNORABLE_404_URLS = [
+    re.compile('/proteins/\w+$'), # acc_nums of proteins not in db
+
+]

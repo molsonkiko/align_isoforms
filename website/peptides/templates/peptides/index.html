@@ -3,18 +3,22 @@
     <head>
         <meta charset = "utf-8">
         <title>Isoform alignment peptide finder</title>
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'peptides/css/main.css' %}">
     </head>
     <h1>Isoform alignment tool and mass spec peptide finder</h1>
-    <p><a href = "/peptides/site_map">Site map</a></p>
+    <h2>What is this site for?</h2>
+    <p>TODO: add some stuff about purpose of work</p>
+    <p><a href = "/site_map">Site map</a></p>
     <a href="get_protein">Find a new protein</a>
     <p>Proteins so far:</p>
     <ul>
     {% for prot_datum in prot_data %}
         <li>
             <a href="proteins/{{prot_datum.acc_num}}">{{prot_datum.acc_num}}</a>: 
-            (length {{ prot_datum.lenseq }}, {{ prot_datum.n_isoforms }} isoforms, 
-                {{ prot_datum.npeps }} peptides)
+            (length {{ prot_datum.lenseq }}, 
+                {{ prot_datum.n_isoforms }} isoform{{ prot_datum.n_isoforms | pluralize }}, 
+                {{ prot_datum.npeps }} peptide{{ prot_datum.npeps | pluralize }})
         </li>
     {% endfor %}
     </ul>

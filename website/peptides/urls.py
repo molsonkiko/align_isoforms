@@ -12,6 +12,6 @@ urlpatterns = [
     path('download_alignment/<str:prots>/', views.download_alignment, name='download_alignment'),
     path('proteins/<str:acc_num>/json', views.protein_json, name='proteins_json'),
     path('proteins/json_schema', views.protein_json_schema, name = 'protein_json_schema'),
-    path('peptides', views.peptides_csv, name='peptides'),
+    path('peptides/', views.peptides_csv, name='peptides'),
     path('site_map', views.site_map, name='site_map'),
 ]

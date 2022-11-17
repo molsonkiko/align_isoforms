@@ -3,28 +3,29 @@
     <head>
         <meta charset="utf-8">
         <title>Protein detail for {{ protein.acc_num }}</title>
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/main.css">
-        <link rel="stylesheet" type="text/css" href="/static/peptides/css/protein.css">
-        <script src="/static/peptides/js/peptide_highlight.js" defer></script>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'peptides/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'peptides/css/protein.css' %}">
+        <script src="{% static 'peptides/js/peptide_highlight.js' %}" defer></script>
     </head>
     <body>
         <h1>Protein {{ protein.acc_num }} detail</h1>
-        <p><a href="/peptides">Back to proteins list</a></p>
+        <p><a href="/">Back to proteins list</a></p>
         <p><a href="https://www.uniprot.org/uniprotkb/{{protein.acc_num}}/entry">
             UniProt entry for {{ protein.acc_num }}
         </a></p>
         <p>
-            <a href="/peptides/proteins/{{ protein.acc_num }}/json">
+            <a href="/proteins/{{ protein.acc_num }}/json">
             Get all data for this protein as JSON
             </a>
             (view 
-            <a href = "/peptides/proteins/json_schema">schema</a>)
+            <a href = "/proteins/json_schema">schema</a>)
         </p>
         <p>Isoforms:</p>
         <ol>
         {% for isoform in isoforms %}
             <li>
-                <a href="/peptides/proteins/{{ isoform }}">Isoform {{ isoform }}</a>
+                <a href="/proteins/{{ isoform }}">Isoform {{ isoform }}</a>
             </li>
         {% endfor %}
         </ol>
@@ -32,7 +33,7 @@
         <ul>
         {% for alignment in alignments %}
             <li>
-                <a href="/peptides/alignments/{{ alignment.prots }}">Alignment {{ alignment.prots }}</a>
+                <a href="/alignments/{{ alignment.prots }}">Alignment {{ alignment.prots }}</a>
             </li>
         {% endfor %}
         </ul>
@@ -60,8 +61,7 @@
         {% for peptide in peptides %}
             <li>
                 <a class = "peptide-link" href = "#{{peptide.location}}_0"
-                    onclick = 'highlight_locs("{{ peptide.location }}"); 
-                        last_highlighted_locs = "{{ peptide.location }}"'>
+                    onclick = 'highlight_locs("{{ peptide.location }}");'>
                     @{{ peptide.location }}
                 </a>:
                 <span class="sequence">{{ peptide.peptide }}</span>

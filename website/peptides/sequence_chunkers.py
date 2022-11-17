@@ -103,7 +103,8 @@ def process_clustal_num(clustal: str, peptides, width: int):
             seq_map.setdefault(acc_num, '')
             seq_map[acc_num] += seq
     seq_map['zzzz'] = stars
-    sorted_acc_nums = sorted(seq_map.keys())
+    from .models import isoform_num
+    sorted_acc_nums = sorted(seq_map.keys(), key = lambda x: 10000 if x == 'zzzz' else isoform_num(x))
     prots = []
     nchunks = 0
     for acc_num in sorted_acc_nums:

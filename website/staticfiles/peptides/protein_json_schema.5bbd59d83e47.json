@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "UniProt ID": {
+            "type": "string"
+        },
+        "sequence": {
+            "type": "string"
+        },
+        "Isoform UniProt IDs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "isoform alignments": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "mass spec peptides": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "integer"
+                    },
+                    "sequence": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "location",
+                    "sequence"
+                ]
+            }
+        }
+    },
+    "required": [
+        "Isoform UniProt IDs",
+        "UniProt ID",
+        "isoform alignments",
+        "mass spec peptides",
+        "sequence"
+    ]
+}
