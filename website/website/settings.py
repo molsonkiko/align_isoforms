@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') != 'False' 
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['750d29f', '127.0.0.1']
 
 
 # Application definition
@@ -78,16 +78,14 @@ WSGI_APPLICATION = 'website.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-postgres_password = os.environ['POSTGRES_PWD']
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'splice_variants_website',
-        'USER': 'postgres',
-        'PASSWORD': postgres_password,
-        'HOST': '127.0.0.1',
-        'PORT': '5433',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'splice_variants_website',
+        # 'USER': 'postgres',
+        # 'PASSWORD': postgres_password,
+        # 'HOST': '127.0.0.1',
+        # 'PORT': '5433',
     }
 }
 
