@@ -13,7 +13,7 @@ CODE_DIR = Path(__file__).parent
 class WebsiteTests(TestCase):
     maxDiff = 1000
     successfully_downloaded_P56856 = False
-    def setUpTestData(cls):
+    def setUpTestData():
         '''Create a simple database with three isoforms,
         their peptides, and their multiple sequence
         alignment
@@ -529,5 +529,24 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         self.assertInHTML(pep_span, html)
         self.assertInHTML(
             '<a href="https://doi.org/10.1016/j.cell.2020.06.013">Gillette et al.</a>',
+            html
+        )
+
+    def test_get_protein_with_weird_json_gives_useful_message(self):
+        '''Some proteins have UniProt JSON that doesn't conform to the expectations
+        of align_isoforms.py, and so views.get_all_data_related_to_prot fails
+        when given those accession numbers.
+        This should be handled gracefully by giving an error message that explains
+        what happened and why the resource isn't available.
+        '''
+        response = self.client.post('/get_protein/',
+            {'acc_num': 'A0A023GPI8'},
+            follow=True
+        )
+        html = response.content.decode()
+        self.assertEqual(response.status_code, 500)
+        # this is a server error, so status code that's appropriate
+        self.assertIn(
+            "The server had an error while retrieving data on protein A0A023GPI8 (or its isoforms) from UniProt.",
             html
         )

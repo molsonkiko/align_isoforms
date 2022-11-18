@@ -90,7 +90,7 @@ def get_all_data_related_to_prot(acc_num: str) -> bool:
     if not prot:
         return False
     og_acc_num = acc_num
-    # now get all the uniprot data for all the isoforms of the protein 
+    # now get all the uniprot data for all the isoforms of the protein
     prots = get_isoforms(prot)
     prot_seqs = get_all_seqs(prots)
     og_prot = Protein(
@@ -140,9 +140,17 @@ def get_protein(request):
             )
         except: # no existing prot, so get the data
             pass
-        if not get_all_data_related_to_prot(acc_num):
+        try:
+            data = get_all_data_related_to_prot(acc_num)
+            if not data:
+                return HttpResponse(
+                    "Could not find UniProt data for the accession number " + acc_num
+                )
+        except:
             return HttpResponse(
-                "Could not find UniProt data for the accession number " + acc_num
+                ("The server had an error while retrieving data on protein %s "
+                "(or its isoforms) from UniProt.") % acc_num,
+                status_code = 500
             )
         return HttpResponseRedirect(
             reverse('peptides:proteins', args=(acc_num,))
