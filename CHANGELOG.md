@@ -1,5 +1,5 @@
 # Change Log
-All [notable changes](#420---2022-10-29) to this project will be documented in this file.
+All [notable changes](#0104---2022-11-17) to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -11,21 +11,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Coloring of protein sequences based on amino acid properties?
     * If you use Notepad++, I added [a simple tool](https://github.com/molsonkiko/NPP_protein_lexer) that colorizes the amino acids of proteins.
 - Easier comparison of motifs and notable features present in one isoform and missing from others?
-- License for repository (what kind to use? MIT? Apache?)
  
 ### To Be Changed
 
 - Consider allowing one-line display of protein sequence. Not sure why I'd want to do this.
-- Add automated testing of UI.
  
 ### To Be Fixed
 
 - nothing known
 
+## [0.10.4] - 2022-11-17
+
+1. Tests now work.
+2. Better site map.
+3. More informative errors when the [get_protein](https://alignisoforms-production.up.railway.app/get_protein/) page fails.
+
 ## [0.10.0] - 2022-11-17
 
-1. First minor release after successful deployment.
-2. Added `about` page explaining the motivation of the project.
+1. __First minor release after successful deployment.__
+2. Added [about](https://alignisoforms-production.up.railway.app/about) page explaining the motivation of the project.
 
 ## [0.9.0] - 2022-11-17
 

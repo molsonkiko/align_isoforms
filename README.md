@@ -11,6 +11,8 @@ Basic use:
     for multiple-sequence alignment of any protein with 2+ isoforms.
     Outputs the sequence as a string for any proteins with only one isoform.
 
-I am also working on a website that can do all these things.
+There is now [a website](https://alignisoforms-production.up.railway.app/) that can do all of these things and has a handy tool for visualizing the locations of mass spec peptides of interest.
 
-Current version: [0.3.0](/CHANGELOG.md#030---2022-11-12)
+Current version: [0.10.4](/CHANGELOG.md#0104---2022-11-17)
+
+![Example of alignment with highlighted peptides](/website/alignment%20page%20all_peptides_highlighted.PNG)
