@@ -147,11 +147,12 @@ def get_protein(request):
                     "Could not find UniProt data for the accession number " + acc_num
                 )
         except:
-            return HttpResponse(
+            response = HttpResponse(
                 ("The server had an error while retrieving data on protein %s "
-                "(or its isoforms) from UniProt.") % acc_num,
-                status_code = 500
+                "(or its isoforms) from UniProt.") % acc_num
             )
+            response.status_code = 500
+            return response
         return HttpResponseRedirect(
             reverse('peptides:proteins', args=(acc_num,))
         )
