@@ -5,7 +5,7 @@ from . import views
 app_name = 'peptides'
 urlpatterns = [
     path('', views.index_view, name='index'),
-    path('about', views.about, name='about'),
+    path('about', views.about_view, name='about'),
     path('proteins/<str:acc_num>/', views.protein_view, name='proteins'),
     # path('alignments/<int:pk>/', views.AlignmentView.as_view(), name='alignments'),
     path('get_protein/', views.get_protein, name='get_protein'),
