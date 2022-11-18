@@ -4,7 +4,7 @@ import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.decorators.cache import never_cache
+# from django.views.decorators.cache import never_cache
 
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
 from .models import Protein, Peptide, Isoform, Alignment, is_acc_num
@@ -12,7 +12,6 @@ from .sequence_chunkers import sequence_chunks, process_clustal_num
 
 CODE_DIR = os.path.join(os.path.dirname(__file__))
 
-@never_cache
 def index_view(request):
     '''Show only the primary isoforms of proteins in the database.
     Optionally allow to order by length, by number of isoforms,
@@ -41,7 +40,11 @@ def index_view(request):
         context = {'prot_data': data}
     )
 
-@never_cache
+
+def about_view(request):
+    return render(request, 'peptides/about.html')
+
+
 def protein_view(request, acc_num: str):
     width = int(request.GET.get('width', 120))
     num_offset = 10 + 9 * width
@@ -122,7 +125,6 @@ def get_all_data_related_to_prot(acc_num: str) -> bool:
     return True
 
 
-@never_cache
 def get_protein(request):
     try:
         acc_num = request.POST['acc_num']
@@ -147,7 +149,6 @@ def get_protein(request):
         )
 
 
-@never_cache
 def alignments_view(request, acc_nums: str):
     width = int(request.GET.get('width', 60))
     num_offset = 120 + 9 * width
@@ -175,7 +176,6 @@ def alignments_view(request, acc_nums: str):
     )
 
 
-@never_cache
 def download_alignment(request, prots: str):
     alignment = Alignment.objects.get(pk = prots)
     primary_acc_num = alignment.prots.split(',')[0]
@@ -194,7 +194,6 @@ def download_alignment(request, prots: str):
     )
 
 
-@never_cache
 def protein_json(request, acc_num: str):
     prot = Protein.objects.get(acc_num = acc_num)
     isoform_ids = [iso.acc_num for iso in prot.get_isoforms()]

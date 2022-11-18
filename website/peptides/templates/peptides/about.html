@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        {% load static %}
+        <title>About the isoform alignment mass spec peptide finder</title>
+        <link rel="stylesheet" href="{% static 'peptides/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'peptides/css/protein.css' %}">
+    </head>
+    <body>
+        <h1>About the website</h1>
+        <p>The purpose of this site is to educate biologists about the possibility
+            of using mass spectrometric data to differentiate between splicing variants
+            (hereafter called <em>isoforms</em>) of proteins that have some harmless
+            isoforms and others that are potentially oncogenic.
+        </p>
+        <p>
+            The site was constructed on behalf of biology professor 
+            <a href="https://biology.sfsu.edu/les-timpe">Les Timpe</a>, who has been
+            studying this topic for some time.
+        </p>
+        <p>
+            <a href="https://doi.org/10.1016/j.cell.2020.06.013">Gillette et al.</a>
+            (2020, Cell 182, 200-225 July 9, 2020) created a database of peptides
+            found in the mass spectra of different protein isoforms that differentiate
+            between their splicing variants.
+        </p>
+        <p>
+            An example of how this technique can be employed is shown below.
+        </p>
+        <div class="chunk">
+            <p class="sequence"><!--
+                --><span class="left-buffer">P56856</span><!--
+                --><!--
+                    --><!--
+                        -->MSTTTCQVVAFLLSILGLAGCIAATGMDMWSTQDLYDNPV<!--
+                    --><!--
+                --><!--
+                    --><!--
+                        --><span class="peptide 40_P56856" id="40_P56856_0" style="color: red; font-weight: bold;">TSVFQYEGLWR</span><!--
+                    --><!--
+                --><!--
+                    --><!--
+                        -->SCVRQSSGF<!--
+                    --><!--
+                --><!--
+            --><!--
+                --><span class="right" style="left:660px">60</span><!-- peptide number at end of line
+            --><!--
+            --></p>
+            <p class="sequence"><!--
+                --><span class="left-buffer">P56856-2</span><!--
+                --><!--
+                    --><!--
+                        -->MAVTACQGLGFVVSLIGIAGIIAATCMDQWSTQDLYNNPVTA<!--
+                    --><!--
+                --><!--
+                    --><!--
+                        --><span class="peptide 42_P56856-2" id="42_P56856-2_0" style="color: red; font-weight: bold;">VFNYQGLWR</span><!--
+                    --><!--
+                --><!--
+                    --><!--
+                        -->SCVR<!--
+                    --><!--
+                --><!--
+                    --><!--
+                        --><span class="peptide 55_P56856-2" id="55_P56856-2_0" style="color: red; font-weight: bold;">ESSGF</span><!--
+                    --><!--
+                --><!--
+            --><!--
+                --><span class="right" style="left:660px">60</span><!-- peptide number at end of line
+            --><!--
+            --></p>
+        
+            <p class="sequence"><!--
+                --><span class="left-buffer"></span><!--
+                --><!--
+                    --><!--
+                        -->*:.*:** :.*::*::*:** **** ** *******:****:**:*:********:****<!--
+                    --><!--
+                --><!--
+            --><!--
+            --></p>
+        </div>
+        <p>
+            The red regions of the 
+            <a href="https://www.uniprot.org/uniprotkb/P56856/entry">above proteins</a>
+            are mass spec peptides found by Gillette et al. that can be used
+            to differentiate between the isoforms. 
+        </p>
+        <p>
+            This method is far from foolproof. The stochastic nature of protein fragmentation
+            during mass spectrometry means that many proteins do not have peptides
+            that are useful for this diagnostic purpose. However, by examining proteins
+            with peptides in the database and using the visualizations tools on this website,
+            hopefully it will become apparent how mass spectrometric data can be used 
+            as a diagnostic tool to determine if an oncogenic variant of a protein is
+            present in a tissue sample.
+        </p>
+        <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
+    </body>
+</html>

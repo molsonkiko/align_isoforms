@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.10.0] - 2022-11-17
+
+1. First minor release after successful deployment.
+2. Added `about` page explaining the motivation of the project.
+
 ## [0.9.0] - 2022-11-17
 
 1. Get ready for deployment.

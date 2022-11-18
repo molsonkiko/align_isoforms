@@ -2,7 +2,7 @@
 <html lang = "en">
     <head>
         <meta charset="utf-8">
-        <title>Isoform alignment site map</title>
+        <title>Isoform alignment mass spec peptide site map</title>
         {% load static %}
         <link rel="stylesheet" type="text/css" href="{% static 'peptides/css/main.css' %}">
         <style>
@@ -18,6 +18,7 @@ pre {
             Contains links to all proteins, ordered alphabetically by accession number.
             Can also add a query to order the proteins <a href="/?orderby=iso">by number of isoforms</a>,
             or <a href="/?orderby=len">by sequence length</a>.</p>
+        <p><pre>/about</pre></p>: Information about the motivation for the site.</p>
         <p><pre>/proteins/&lt;UniProt accession number&gt;?width=&lt;integer&gt;</pre>: Data for any protein already in the database. 
             Example: <a href="/proteins/P56856">/proteins/P56856.</a>
             Can change the number of amino acids per line (default 120) with a <em>width</em> query.</p>
@@ -40,5 +41,6 @@ pre {
             Can change the number of amino acids per line (default 60) with a <em>width</em> query.</p>
         <p><a href="/get_protein"><pre>/get_protein</pre></a>: 
             Enter a UniProt accession number, get its isoforms, peptides, and a sequence alignment with its isoforms.</p>
+        <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
     </body>
 </html>

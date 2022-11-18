@@ -13,7 +13,7 @@ CODE_DIR = Path(__file__).parent
 class WebsiteTests(TestCase):
     maxDiff = 1000
     successfully_downloaded_P56856 = False
-    def setUpTestData():
+    def setUpTestData(self):
         '''Create a simple database with three isoforms,
         their peptides, and their multiple sequence
         alignment
@@ -521,3 +521,13 @@ CLUSTAL O(1.2.4) multiple sequence alignment
     <li> <a href="proteins/BLUTEN">BLUTEN</a>: (length 15, 3 isoforms, 3 peptides) </li>
 </ul>'''
         self.assertInHTML(prot_list, html)
+
+    def test_about_view(self):
+        response = self.client.get('/about')
+        html = response.content.decode()
+        pep_span = '<span class="peptide 40_P56856" id="40_P56856_0" style="color: red; font-weight: bold;">TSVFQYEGLWR</span>'
+        self.assertInHTML(pep_span, html)
+        self.assertInHTML(
+            '<a href="https://doi.org/10.1016/j.cell.2020.06.013">Gillette et al.</a>',
+            html
+        )
