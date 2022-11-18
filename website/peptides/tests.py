@@ -13,7 +13,7 @@ CODE_DIR = Path(__file__).parent
 class WebsiteTests(TestCase):
     maxDiff = 1000
     successfully_downloaded_P56856 = False
-    def setUpTestData(self):
+    def setUpTestData(cls):
         '''Create a simple database with three isoforms,
         their peptides, and their multiple sequence
         alignment
