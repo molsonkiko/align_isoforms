@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Add peptides from CSV</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'peptides/css/main.css' %}">
+    </head>
+    <body>
+        <h1>Add peptides from a CSV file</h1>
+        <p><a href="/admin/">Return to main admin site</a></p>
+        {% if error_message %}<p>Error: <strong>{{ error_message }}</strong></p>{% endif %}
+        <form action = "" method = "POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset>
+                <p><strong>Choose a protein accession number</strong></p>
+                <input type="file" name="csv_file" id="csv_file">
+                <label for="csv_file">Choose a file to upload</label><br><br>
+                <input type="text" minlength="1" maxlength="3" value="," name="sep" id="sep" style="width:5ch;">
+                <label for="sep">Separator for file</label>
+            </fieldset>
+            <input type="submit" value="Upload peptides from CSV">
+        </form>
+        <p>
+            The CSV file may or may not have a header.
+            The fields MUST be separated by a separator (default ',').
+            The file MUST have the following format:
+        </p>
+        <pre>accession number,sequence
+accession number,sequence</pre>
+        <p>
+            This format is also acceptable
+            (note that "location in parent protein" MUST be a whole number)
+        </p>
+        <pre>accession number,sequence,location in parent protein
+accession number,sequence,location in parent protein</pre>
+    </body>
+</html>

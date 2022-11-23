@@ -16,6 +16,8 @@ function highlight_locs(loc) {
 function highlight_all_peptides() {
     // make all peptides red and bold
     var peptides = document.getElementsByClassName('peptide');
+    // focus the first peptide so the user doesn't have to hunt for it
+    peptides[0].scrollIntoView();
     for (var ii = 0; ii < peptides.length; ii++) {
         peptides[ii].style.color = 'red';
         peptides[ii].style.fontWeight = 'bold';

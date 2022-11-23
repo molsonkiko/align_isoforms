@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.11.0] - 2022-11-23
+
+1. Add admin form for adding peptides from CSV file.
+2. When highlighting all peptides in a protein or alignment, automatically scroll until the first peptide highlighted is in view.
+
 ## [0.10.4] - 2022-11-17
 
 1. Tests now work.

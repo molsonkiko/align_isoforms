@@ -1,4 +1,5 @@
 import re
+from django.contrib import admin
 from django.db import models
 
 class BaseModel(models.Model):
@@ -46,10 +47,7 @@ class Protein(BaseModel):
         '''
         self.isoform_num = isoform_num(self.acc_num)
         super().save(*args, **kwargs)
-        peptides = Peptide.objects.filter(prot = self.acc_num)
-        for peptide in peptides:
-            pep = peptide.peptide
-            peptide.location = self.sequence.index(pep)
+        for peptide in Peptide.objects.filter(prot = self.acc_num):
             peptide.save(force_update=True)
 
     def get_isoforms(self):
@@ -122,6 +120,27 @@ class Peptide(BaseModel):
         return 'Peptide(%s, %i, %s)' % (self.prot, self.location, prot_abbrev)
 
     __repr__ = __str__
+
+    def save(self, *args, **kwargs):
+        '''Find the protein with this peptide's accession number, and if that
+        protein is in the database, set the location field to the location
+        of this peptide in that protein's sequence.
+        '''
+        corresponding_protein = Protein.objects.filter(acc_num = self.prot)
+        if len(corresponding_protein) == 0:
+            super().save(*args, **kwargs)
+            return
+        try:
+            self.location = corresponding_protein[0].sequence.index(self.peptide)
+        except ValueError: # raised by .index if thing not in list
+            pass
+        super().save(*args, **kwargs)
+
+    @admin.display
+    def peptide_preview(self):
+        if len(self.peptide) < 20:
+            return self.peptide
+        return self.peptide[:17] + '...'
     
     class Meta:
         indexes = [

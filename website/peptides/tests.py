@@ -1,6 +1,8 @@
 import json
+import os
 from pathlib import Path
 import random
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from .models import Protein, Peptide, Alignment, Isoform
@@ -42,23 +44,19 @@ class WebsiteTests(TestCase):
             )
         Peptide.objects.create(
             prot = 'BLUTEN',
-            peptide = 'MAW',
-            location = 0
+            peptide = 'MAW' # location 0
         )
         Peptide.objects.create(
             prot = 'BLUTEN',
-            peptide = 'RLFVCG',
-            location = 6
+            peptide = 'RLFVCG' # location 6
         )
         Peptide.objects.create(
             prot = 'BLUTEN',
-            peptide = 'GTI',
-            location = 11
+            peptide = 'GTI' # location 11
         )
         Peptide.objects.create(
             prot = 'BLUTEN-2',
-            peptide = 'PRLT',
-            location = 5
+            peptide = 'PRLT' # location 5
         )
         alignment = '''
 CLUSTAL O(1.2.4) multiple sequence alignment
@@ -85,6 +83,8 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         __class__.successfully_downloaded_P56856 = get_all_data_related_to_prot('P56856')
         # finally create one-real-seeming protein with no peptides
         Protein.objects.create(acc_num = 'P56854', sequence = 'MMM')
+        # create a superuser
+        User.objects.create_superuser(username='super', password='password')
 
     ### MODEL TESTS ###
 
@@ -550,3 +550,126 @@ CLUSTAL O(1.2.4) multiple sequence alignment
             "The server had an error while retrieving data on protein A0A023GPI8 (or its isoforms) from UniProt.",
             html
         )
+
+    def test_add_peptide_after_protein_sets_location(self):
+        new_pep = Peptide(
+            prot = 'BLUTEN-3',
+            peptide = 'TIR'
+        )
+        new_pep.save()
+        self.assertEqual(new_pep.location, 2)
+        new_pep.delete()
+
+    def login_write_file_test_destroy_file(peps, login):
+        '''create a temporary CSV file of peptides,
+        run a test function, then destroy the temp file'''
+        def decorator(fun):
+            def decorated(self):
+                if login:
+                    self.client.post(
+                        '/admin/login/',
+                        {'username': 'super', 'password': 'password'}
+                    )
+                with open('test_peptides.csv', 'w') as f:
+                    f.write(peps)
+                try:
+                    fun(self)
+                finally:
+                    os.unlink('test_peptides.csv')
+            return decorated
+        return decorator
+
+    @login_write_file_test_destroy_file('accesssion,peptide\nHUNDEN,QQQ\nHUNDEN,MMM\nHUNDEN-2,YYY\nHUNDEN-3,AAA', True)
+    def test_add_peptide_from_csv(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 4)
+            peps.delete()
+
+    @login_write_file_test_destroy_file('HUNDEN,QQQ\nHUNDEN,MMM\nHUNDEN-2,YYY\nHUNDEN-3,AAA', True)
+    def test_add_peptide_from_csv_no_header(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 4)
+            peps.delete()
+
+    @login_write_file_test_destroy_file('accesssion,peptide\nHUNDEN,QQQ\nHUNDEN,MMM\nHUNDEN-2,YYY\nHUNDEN-3,AAA', False)
+    def test_add_peptide_from_csv_not_logged_in(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            # no peptides should have been added because not logged in
+            self.assertEqual(len(peps), 0)
+            peps.delete()
+
+    @login_write_file_test_destroy_file('HUNDEN,QQQ,3\nHUNDEN,MMM,7', True)
+    def test_add_peptide_from_csv_with_location(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 2)
+            pep_locs = [x.location for x in peps]
+            self.assertEqual(pep_locs, [3, 7])
+            peps.delete()
+
+    @login_write_file_test_destroy_file('HUNDEN\tQQQ\nHUNDEN\tMMM', True)
+    def test_add_peptide_from_csv_tab_sep(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f, 'sep': 'tab'},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 2)
+            pep_seqs = [x.peptide for x in peps]
+            self.assertEqual(pep_seqs, ['QQQ', 'MMM'])
+            peps.delete()
+
+    @login_write_file_test_destroy_file('HUNDEN|QQQ\nHUNDEN|MMM', True)
+    def test_add_peptide_from_csv_pipe_sep(self):
+        with open('test_peptides.csv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f, 'sep': '|'},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 2)
+            pep_seqs = [x.peptide for x in peps]
+            self.assertEqual(pep_seqs, ['QQQ', 'MMM'])
+            peps.delete()
+
+    @login_write_file_test_destroy_file('HUNDEN\tQQQ\nHUNDEN\tMMM', True)
+    def test_add_peptide_from_csv_tab_sep_tsv_ext(self):
+        os.rename('test_peptides.csv', 'test_peptides.tsv')
+        with open('test_peptides.tsv') as f:
+            self.client.post(
+                '/admin/peptides/peptide/from_csv/',
+                {'csv_file': f, 'sep': 'tab'},
+                follow=True
+            )
+            peps = Peptide.objects.filter(prot__contains='HUNDEN')
+            self.assertEqual(len(peps), 2)
+            pep_seqs = [x.peptide for x in peps]
+            self.assertEqual(pep_seqs, ['QQQ', 'MMM'])
+            peps.delete()
+        os.rename('test_peptides.tsv', 'test_peptides.csv')
