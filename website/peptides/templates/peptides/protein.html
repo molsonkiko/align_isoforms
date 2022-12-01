@@ -30,6 +30,13 @@
         {% endfor %}
         </ol>
         <p>Alignments:</p>
+        {% if alignments|length_is:"0" %}
+            <form action = "{% url 'peptides:request_alignment'  %}" method = "POST">
+                {% csrf_token %}
+                <input hidden type="text" value="{{ protein.acc_num }}" name="acc_num" id="acc_num">
+                <input type="submit" value="Alignment not found for {{ protein.acc_num }}. Try again?">
+            </form>
+        {% endif %}
         <ul>
         {% for alignment in alignments %}
             <li>

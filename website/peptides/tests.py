@@ -673,3 +673,36 @@ CLUSTAL O(1.2.4) multiple sequence alignment
             self.assertEqual(pep_seqs, ['QQQ', 'MMM'])
             peps.delete()
         os.rename('test_peptides.tsv', 'test_peptides.csv')
+
+    def test_request_alignment_valid_acc_num(self):
+        acc_num = 'O00305-3'
+        prot = Protein(acc_num=acc_num, sequence='LLLLL')
+        prot.save()
+        response = self.client.post('/request_alignment/', data={'acc_num': acc_num}, follow=True)
+        html = response.content.decode()
+        self.assertIn('SRDHYPLVEEDYPDSYQDTYKPHRNRGSPGGYSHDSRHRL', html)
+        # all isoforms have this sequence at the end 
+        for acc in ['O00305', 'O00305-2', acc_num, 'O00305-4']:
+            self.assertInHTML(f'<span class="left-buffer">{acc}</span>', html)
+        alignment = prot.get_alignments()[0]
+        alignment.delete()
+        prot.delete()
+
+    def test_request_alignment_no_acc_num(self):
+        response = self.client.post('/request_alignment/', follow=True)
+        html = response.content.decode()
+        self.assertIn("Must supply an accession number when requesting an alignment.", html)
+
+    def test_request_alignment_invalid_acc_num(self):
+        response = self.client.post('/request_alignment/', data={'acc_num': 'jdfkdnfl'}, follow=True)
+        self.assertIn("because it's not a valid accession number", response.content.decode())
+
+    def test_protein_with_no_alignment_has_request_alignment_button(self):
+        acc_num = 'O00305-3'
+        prot = Protein(acc_num=acc_num, sequence='LLLLL')
+        prot.save()
+        response = self.client.get(f'/proteins/{acc_num}/')
+        html = response.content.decode()
+        self.assertInHTML(f'<input type="submit" value="Alignment not found for {acc_num}. Try again?">', html)
+        self.assertInHTML(f'<input hidden="" type="text" value="{acc_num}" name="acc_num" id="acc_num">', html)
+        prot.delete()

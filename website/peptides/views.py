@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 # from django.views.decorators.cache import never_cache
 
-from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json
+from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json, align_isoforms
 from .models import Protein, Peptide, Isoform, Alignment, is_acc_num
 from .sequence_chunkers import sequence_chunks, process_clustal_num
 
@@ -288,3 +288,31 @@ def peptides_csv(request):
 
 def site_map(request):
     return render(request, 'peptides/site_map.html')
+
+
+def request_alignment(request):
+    '''Sometimes the EBI computer won't return an alignment when the user gets the
+    data for a protein and its isoforms.
+    This allows the user to resubmit a request for data from the EBI.
+    When the request succeeds, or if the protein's alignment was already in 
+    the database, redirect to the alignment page.
+    '''
+    acc_num = request.POST.get('acc_num')
+    if not acc_num:
+        return HttpResponse("Must supply an accession number when requesting an alignment.")
+    if not is_acc_num(acc_num):
+        return HttpResponse(f"Can't request an alignment for '{acc_num}' because it's not a valid accession number.")
+    prot = Protein.objects.get(acc_num = acc_num)
+    existing_alignment = prot.get_alignments()
+    isoforms = prot.get_isoforms()
+    prot_list = ','.join([acc_num] + [x.acc_num for x in isoforms])
+    if existing_alignment:
+        return HttpResponseRedirect('/alignments/' + prot_list)
+    try:
+        alignment = align_isoforms(acc_num)
+    except Exception as ex:
+        return HttpResponse("While requesting alignment, got the following error: " + str(ex))
+    if not alignment:
+        return HttpResponse("The EBI did not return an alignment for protein '" + acc_num + "'. Try again later.")
+    Alignment.objects.create(prots=prot_list, alignment=alignment)
+    return HttpResponseRedirect("/alignments/" + prot_list)

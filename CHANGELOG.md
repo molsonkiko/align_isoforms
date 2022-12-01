@@ -1,5 +1,5 @@
 # Change Log
-All [notable changes](#0104---2022-11-17) to this project will be documented in this file.
+All [notable changes](#0111---2022-12-01) to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### To Be Fixed
 
 - nothing known
+
+## [0.11.1] - 2022-12-01
+
+1. For a protein's page, if no alignment exists, show a button that allows the user to retry the request for a multiple sequence alignment to the EBI computer.
 
 ## [0.11.0] - 2022-11-23
 

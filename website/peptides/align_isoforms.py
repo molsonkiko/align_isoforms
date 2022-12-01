@@ -126,7 +126,7 @@ def request_multi_alignment(seqs: dict) -> str:
     resp.raise_for_status()
     return resp.text
 
-def align_isoforms(acc_num: str, **kwargs) -> str:
+def align_isoforms(acc_num: str) -> str:
     '''get all isoforms of the protein with accession number acc_num,
     and return a sequence alignment.
     Can also pass in keyword arguments to set parameters for the alignment,
