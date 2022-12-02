@@ -28,16 +28,24 @@ def index_view(request):
         for prot in proteins
     ]
     orderby = request.GET.get('orderby', 'alpha')
-    if orderby == 'alpha':
-        data = sorted(data, key = lambda x: x['acc_num'])
-    elif orderby[:3] == 'iso':
-        data = sorted(data, key = lambda x: x['n_isoforms'])
-    elif orderby == 'len':
-        data = sorted(data, key = lambda x: x['lenseq'])
+    sort_reverse = orderby[0] == '-'
+    if sort_reverse:
+        orderby = orderby[1:]
+    orderby = {
+        'alpha': 'acc_num',
+        'iso': 'n_isoforms',
+        'len': 'lenseq',
+        'npeps': 'npeps',
+    }[orderby] # sort by accession number unless user says otherwise
     return render(
         request,
         'peptides/index.html',
-        context = {'prot_data': data}
+        context = {
+            'prot_data': data, 
+            'orderby': orderby, 
+            'sort_reverse': "true" if sort_reverse else "false"
+        }
+        # sorting is done server-side; see script at top of index.html
     )
 
 

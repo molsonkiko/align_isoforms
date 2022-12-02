@@ -13,36 +13,49 @@ pre {
     </head>
     <body>
         <h1>Site map</h1>
+        
         <p><a href="/"><pre>/?orderby=&lt;len|iso&gt;</pre></a>:
             <strong style="font-size: 14px;">Home page.</strong>
-            Contains links to all proteins, ordered alphabetically by accession number.
-            Can also add a query to order the proteins <a href="/?orderby=iso">by number of isoforms</a>,
-            or <a href="/?orderby=len">by sequence length</a>.</p>
+            Contains links to all proteins, ordered A-Z by accession number.
+            Can also add a query to order the proteins <a href="/?orderby=iso">by number of isoforms</a>, <a href="/?orderby=npeps">by number of mass spec peptides</a>
+            or <a href="/?orderby=len">by sequence length</a>.
+            Can add a <pre>-</pre> before a query (e.g. <a href="/?orderby=-iso"><pre>/?orderby=-iso</pre></a>) to sort descending.</p>
+
         <p><a href="/about"><pre>/about</pre></a>: Information about the motivation for the site.</p>
+        
         <p><pre>/proteins/&lt;UniProt accession number&gt;?width=&lt;integer&gt;</pre>: Data for any protein already in the database. 
             Example: <a href="/proteins/P56856">/proteins/P56856.</a>
             Can change the number of amino acids per line (default 120) with a <em>width</em> query.</p>
+        
         <p><pre>/proteins/&lt;UniProt accession number&gt;</pre>: JSON data for any protein already in the database. 
             Example: <a href="/proteins/P56856/json">/proteins/P56856/json</a></p>
+        
         <p><a href = "/proteins/json_schema"><pre>/proteins/json_schema</pre></a>: 
             <a href = "https://json-schema.org/">JSON schema</a> for the JSON returned by 
             <pre>proteins/&lt;accession num&gt;</pre> json.</p>
+
         <p><pre>/peptides/?acc_num_like=&lt;UniProt accession number&gt;</pre>: 
             Download a CSV file with the peptides associated with any protein whose 
             UniProt accession number partially matches the query. 
             Example: <a href="/peptides/?acc_num_like=P56856">/peptides/acc_num_like=P56856</a> 
             matches <pre>P56856</pre> and <pre>P56856-2</pre>.</p>
+
         <p><pre>/peptides/?acc_num=&lt;UniProt accession number&gt</pre>: Download a CSV file with the 
             peptides associated with the protein that has exactly that UniProt accession number. 
             Example: <a href="/peptides/?acc_num=P56856">/peptides/acc_num=P56856</a> matches <pre>P56856</pre> only.</p>
+
         <p><pre>/alignments/&lt;list of UniProt accession numbers&gt;?width=&lt;integer&gt;</pre>: 
             The alignment of the proteins with those UniProt accession numbers. 
             Most conveniently accessed from the <pre>proteins</pre> page for one of those accession numbers.
             Can change the number of amino acids per line (default 60) with a <em>width</em> query.</p>
+
         <p><a href="/get_protein"><pre>/get_protein</pre></a>: 
             Enter a UniProt accession number, get its isoforms, peptides, and a sequence alignment with its isoforms.</p>
-        <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
+
         <p><a href="/admin/"><pre>/admin/</pre></a>: For site administrators only. Password-protected.</p>
+
         <p><a href="/admin/peptides/peptide/from_csv"><pre>/admin/peptides/peptide/from_csv/</pre></a>: Add peptides from a CSV file. For site admins only.</p>
+            
+        <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
     </body>
 </html>

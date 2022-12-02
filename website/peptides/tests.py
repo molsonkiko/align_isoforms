@@ -489,39 +489,6 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         ]
         self.assertEqual(lines, correct_lines)
 
-    def test_index_default(self):
-        response = self.client.get('/')
-        html = response.content.decode()
-        prot_list = '''
-<ul>
-    <li> <a href="proteins/BLUTEN">BLUTEN</a>: (length 15, 3 isoforms, 3 peptides) </li>
-    <li> <a href="proteins/P56854">P56854</a>: (length 3, 1 isoform, 0 peptides) </li>
-    <li> <a href="proteins/P56856">P56856</a>: (length 261, 2 isoforms, 1 peptide) </li>
-</ul>'''
-        self.assertInHTML(prot_list, html)
-
-    def test_index_sort_by_len(self):
-        response = self.client.get('/?orderby=len')
-        html = response.content.decode()
-        prot_list = '''
-<ul>
-    <li> <a href="proteins/P56854">P56854</a>: (length 3, 1 isoform, 0 peptides) </li>
-    <li> <a href="proteins/BLUTEN">BLUTEN</a>: (length 15, 3 isoforms, 3 peptides) </li>
-    <li> <a href="proteins/P56856">P56856</a>: (length 261, 2 isoforms, 1 peptide) </li>
-</ul>'''
-        self.assertInHTML(prot_list, html)
-
-    def test_index_sort_by_num_isoforms(self):
-        response = self.client.get('/?orderby=iso')
-        html = response.content.decode()
-        prot_list = '''
-<ul>
-    <li> <a href="proteins/P56854">P56854</a>: (length 3, 1 isoform, 0 peptides) </li>
-    <li> <a href="proteins/P56856">P56856</a>: (length 261, 2 isoforms, 1 peptide) </li>
-    <li> <a href="proteins/BLUTEN">BLUTEN</a>: (length 15, 3 isoforms, 3 peptides) </li>
-</ul>'''
-        self.assertInHTML(prot_list, html)
-
     def test_about_view(self):
         response = self.client.get('/about')
         html = response.content.decode()
@@ -706,3 +673,80 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         self.assertInHTML(f'<input type="submit" value="Alignment not found for {acc_num}. Try again?">', html)
         self.assertInHTML(f'<input hidden="" type="text" value="{acc_num}" name="acc_num" id="acc_num">', html)
         prot.delete()
+
+
+##########
+# TODO: add Selenium-based tests for the index page's protein table.
+# For now I have to test it manually.
+# It is based on JavaScript, so the basic test client can't test it.
+##########
+# from bs4 import BeautifulSoup as bs
+# import requests
+########## Need to use BeautifulSoup and requests to test the HTML
+
+# class JavaScriptTester(TestCase):
+#     def test_index_default(self):
+#         response = self.client.get('/')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)
+
+#     def test_index_sort_by_len(self):
+#         response = self.client.get('/?orderby=len')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)
+
+#     def test_index_sort_by_num_isoforms(self):
+#         response = self.client.get('/?orderby=iso')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)
+
+#     def test_index_sort_by_num_peptides(self):
+#         response = self.client.get('/?orderby=npeps')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)
+
+#     def test_index_sort_by_len_desc(self):
+#         response = self.client.get('/?orderby=-len')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)
+
+#     def test_index_sort_by_acc_num_desc(self):
+#         response = self.client.get('/?orderby=-alpha')
+#         html = response.content.decode()
+#         prot_list = '''
+# <tbody id="prot-table">
+#     <tr><th scope="row"><a href="proteins/P56856">P56856</a></th> <td>261</td> <td>2</td> <td>1</td></tr>
+#     <tr><th scope="row"><a href="proteins/P56854">P56854</a></th> <td>3</td> <td>1</td> <td>0</td> </tr>
+#     <tr><th scope="row"><a href="proteins/BLUTEN">BLUTEN</a></th> <td>15</td> <td>3</td> <td>3</td> </tr>
+# </tbody>'''
+#         self.assertInHTML(prot_list, html)

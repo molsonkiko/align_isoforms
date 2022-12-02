@@ -5,23 +5,83 @@
         <title>Isoform alignment mass spec peptide finder</title>
         {% load static %}
         <link rel="stylesheet" type="text/css" href="{% static 'peptides/css/main.css' %}">
+        {{ prot_data|json_script:"prot_data" }}
+        <script>
+const prot_data = JSON.parse(document.getElementById('prot_data').textContent);
+
+function compare_strings(a, b) {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+}
+
+function sort_prots_by(field, force_sort_descending) {
+    var sort_descending = false;
+    var sort_arrows = document.getElementsByClassName('sort-arrow');
+    for (var ii = 0; ii < sort_arrows.length; ii++) {
+        var arrow = sort_arrows[ii];
+        var arrow_text = arrow.innerHTML.trim();
+        // 11014 is up arrow, 11015 (or 0x2b07) is down arrow, 8597 is up-down arrow
+        if (arrow.id === 'sort-' + field) {
+            // this is the field we're sorting by, so change the arrow
+            // if we've already sorted by the field
+            sort_descending = arrow_text === '\u2b07'
+            arrow.innerHTML = (sort_descending || force_sort_descending) 
+                ? '&#11014;' : '&#11015;'
+        }
+        else arrow.innerHTML = '&#8597;'
+    }
+    if (field === 'acc_num') {
+        prot_data.sort((a, b) => compare_strings(a.acc_num, b.acc_num));
+    }
+    else {
+        prot_data.sort((a, b) => a[field] - b[field]);
+    }
+    if (sort_descending || force_sort_descending) prot_data.reverse();
+    var prots_table = document.getElementById('prot-table');
+    prots_table.innerHTML = '';
+    for (var ii = 0; ii < prot_data.length; ii++) {
+        var datum = prot_data[ii];
+        var table_row = '<tr>' +
+        '<th scope="row"><a href="proteins/' + datum.acc_num + '">' + datum.acc_num + '</a></th>'
+        + '<td>' + datum.lenseq + '</td>'
+        + '<td>' + datum.n_isoforms + '</td>'
+        + '<td>' + datum.npeps + '</td>'
+        + '</tr>'
+        prots_table.innerHTML += table_row;
+    }
+}
+
+// sort prots by accession number A-Z on page load, unless user requested something else
+window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
+        </script>
     </head>
     <body>
         <h1>Isoform alignment tool and mass spec peptide finder</h1>
         <h2><a href="/about">What is this site for?</a></h2>
         <p><a href = "/site_map">Site map</a></p>
         <a href="get_protein">Find a new protein</a>
-        <p>Proteins so far:</p>
-        <ul>
-        {% for prot_datum in prot_data %}
-            <li>
-                <a href="proteins/{{prot_datum.acc_num}}">{{prot_datum.acc_num}}</a>: 
-                (length {{ prot_datum.lenseq }}, 
-                    {{ prot_datum.n_isoforms }} isoform{{ prot_datum.n_isoforms | pluralize }}, 
-                    {{ prot_datum.npeps }} peptide{{ prot_datum.npeps | pluralize }})
-            </li>
-        {% endfor %}
-        </ul>
+        <h3>Proteins so far:</h3>
+        <table>
+            <thead>
+                <!-- 11014 is up arrow, 11015 is down arrow, 8597 is up-down arrow -->
+                <th scope="col" onclick="sort_prots_by('acc_num')">Accession number
+                    <span class="sort-arrow" id="sort-acc_num">&#8597;</span>
+                </th>
+                <th scope="col" onclick="sort_prots_by('lenseq')"> Sequence length
+                    <span class="sort-arrow" id="sort-lenseq">&#8597; </span>
+                </th>
+                <th scope="col" onclick="sort_prots_by('n_isoforms')"># of isoforms
+                    <span class="sort-arrow" id="sort-n_isoforms">&#8597; </span>
+                </th>
+                <th scope="col" onclick="sort_prots_by('npeps')"># of mass spec peptides
+                    <span class="sort-arrow" id="sort-npeps">&#8597;</span>
+                </th>
+            </thead>
+            <tbody id="prot-table">
+                <!-- filled by sort_prots_by(field) -->
+            </tbody>
+        </table>
         <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
     </body>
 </html>
