@@ -65,16 +65,16 @@ window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
         <table>
             <thead>
                 <!-- 11014 is up arrow, 11015 is down arrow, 8597 is up-down arrow -->
-                <th scope="col" onclick="sort_prots_by('acc_num')">Accession number
+                <th scope="col" onclick="sort_prots_by('acc_num', false)">Accession number
                     <span class="sort-arrow" id="sort-acc_num">&#8597;</span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('lenseq')"> Sequence length
+                <th scope="col" onclick="sort_prots_by('lenseq', false)"> Sequence length
                     <span class="sort-arrow" id="sort-lenseq">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('n_isoforms')"># of isoforms
+                <th scope="col" onclick="sort_prots_by('n_isoforms', false)"># of isoforms
                     <span class="sort-arrow" id="sort-n_isoforms">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('npeps')"># of mass spec peptides
+                <th scope="col" onclick="sort_prots_by('npeps', false)"># of mass spec peptides
                     <span class="sort-arrow" id="sort-npeps">&#8597;</span>
                 </th>
             </thead>

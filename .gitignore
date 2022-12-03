@@ -4,4 +4,5 @@ colorize_amino_acids.py
 **/.ipynb_checkpoints
 website/peptides/static/peptides/interaction plot/tableAnalysisGraph2.r
 website/peptides/static/peptides/interaction plot/P07585 ggplot.png
-website/peptides/static/peptides/interaction plot/P07585wide.csv
+# website/peptides/static/peptides/interaction plot/P07585wide.csv
+website/peptides/static/peptides/interaction plot/interaction_table.txt
