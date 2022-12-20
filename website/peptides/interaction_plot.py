@@ -20,7 +20,7 @@ def process_csv(buffer):
     del piv['accnum_type']
     return piv
 
-def suptitle_and_primary_iso(groups: list[list]):
+def suptitle_and_primary_iso(groups: list):
     '''add a supertitle to the plots, to display over all the figures
     also return the accession number of the primary isoform'''
     base_acc_num = groups[0][0]
