@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset = "utf-8">
+        <title>interaction plot for {{ acc_num }}</title>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'peptides/css/main.css' %}">
+    </head>
+    <body>
+        <div id="plot">
+            {% autoescape off %}{{ plot_html }}{% endautoescape %}
+        </div>
+        <p>Vertical lines in plots indicate the mean MS intensities.</p>
+        <a class="button" href="/download_interaction_plot_data/{{ acc_num }}">
+            Download data
+        </a>
+        <p>The data can be most easily parsed by
+            <a href="https://github.com/molsonkiko/splice_variants/blob/main/website/peptides/interaction_plot.py"
+            >this script</a>
+            in the site's GitHub repository.
+        </p>
+        <p>
+            These data were produced by <a href="https://biology.sfsu.edu/les-timpe">Les Timpe</a>
+            in his laboratory research on lung adenocarcinoma.
+            If some isoforms of the protein are missing from the data,
+            it may be because the MS signatures of that isoform were not detected in raw MS data.
+        </p>
+        <p><a href="/proteins/{{ acc_num }}">All data for this protein</a></p>
+    </body>
+</html>

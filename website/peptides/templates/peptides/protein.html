@@ -44,6 +44,9 @@
             </li>
         {% endfor %}
         </ul>
+        <p>
+            <a href="/interaction_plot/{{ protein.acc_num }}">Plot MS intensities of isoforms in cancer vs. non-cancer tissue samples</a>
+        </p>
         <p>Sequence (length {{seq_len}}):</p>
         <div class="chunk">
         {% for prot_pieces in sequence_chunks %}

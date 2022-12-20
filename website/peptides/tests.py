@@ -674,6 +674,37 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         self.assertInHTML(f'<input hidden="" type="text" value="{acc_num}" name="acc_num" id="acc_num">', html)
         prot.delete()
 
+    #####################
+    # interaction plots
+    #####################
+
+    def test_interaction_plot_data_download(self):
+        response = self.client.get('/download_interaction_plot_data/P07585',
+            headers = {
+                'content-disposition': 'attachment; filename = "MS intensity vs cancer status vs isoform P07585.csv"',
+                'content-type': 'text; charset = "utf-8"',
+            }
+        )
+        lines = response.content.decode().split()
+        self.assertEqual(lines[0], 'patient,P07585_N,P07585_C,P07585.2_N,P07585.2_C,P07585.3_N,P07585.3_C,P07585.5_N,P07585.5_C')
+
+    def test_interaction_plot_data_download_bad_acc_num(self):
+        response = self.client.get('/interaction_plot/ZZZZZZZZ')
+        html = response.content.decode()
+        self.assertIn('No MS intensity vs. isoform vs. cancer status data could be found for protein ZZZZZZZZ.', html)
+    
+    def test_interaction_plot(self):
+        response = self.client.get('/interaction_plot/P07585')
+        html = response.content.decode()
+        plot_title = '<title>P07585 isoforms interaction plot histograms</title>'
+        self.assertInHTML(plot_title, html)
+
+    def test_interaction_plot_bad_acc_num(self):
+        response = self.client.get('/interaction_plot/ZZZZZZZZ')
+        html = response.content.decode()
+        self.assertIn('No MS intensity vs. isoform vs. cancer status data could be found for protein ZZZZZZZZ.', html)
+
+
 
 ##########
 # TODO: add Selenium-based tests for the index page's protein table.

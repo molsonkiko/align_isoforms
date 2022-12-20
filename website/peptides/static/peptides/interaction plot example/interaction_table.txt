@@ -1,0 +1,38 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def process_csv(buffer):
+    df = pd.read_csv(buffer)
+    piv = df.melt(id_vars='index', 
+        var_name='accnum_type', value_name='intensity'
+    )
+    accnum_type = piv.accnum_type.str.split('_', expand=True)
+    piv['acc_num'] = accnum_type.iloc[:, 0]
+    piv['is_cancer'] = accnum_type.iloc[:, 1] == 'C'
+    del piv['accnum_type']
+    piv2 = (pd.merge(piv[piv.is_cancer], piv[~piv.is_cancer], on=['index', 'acc_num'])
+        .loc[:, ['acc_num', 'intensity_x', 'intensity_y']]
+        .rename({
+            'intensity_x': 'cancer', 
+            'intensity_y': 'non_cancer'
+        }, axis = 1)
+    )
+    return piv2
+
+def interaction_plot(df: pd.DataFrame):
+    groups = df.groupby('acc_num').groups.items()
+    fig, axes = plt.subplots(nrows=4)
+    fig.set_figwidth(12)
+    fig.set_figheight(8)
+    for ax, (acc_num, inds) in zip(axes, groups):
+        df.iloc[inds, :].plot.hist(ax=ax, alpha=0.5, bins=20)
+        ax.set_title(acc_num)
+    axes[-1].set_xlabel('MS intensity')
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    with open('P07585wide.csv') as f:
+        df = process_csv(f)
+        interaction_plot(df)

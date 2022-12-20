@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -9,8 +10,9 @@ from django.urls import reverse
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json, align_isoforms
 from .models import Protein, Peptide, Isoform, Alignment, is_acc_num
 from .sequence_chunkers import sequence_chunks, process_clustal_num
+from . import interaction_plot
 
-CODE_DIR = os.path.join(os.path.dirname(__file__))
+CODE_DIR = Path(__file__).parent
 
 def index_view(request):
     '''Show only the primary isoforms of proteins in the database.
@@ -229,7 +231,8 @@ def protein_json(request, acc_num: str):
 
 
 def protein_json_schema(request):
-    with open(os.path.join(CODE_DIR, 'static/peptides/protein_json_schema.json')) as f:
+    schema_fname = CODE_DIR/'static'/'peptides'/'protein_json_schema.json'
+    with schema_fname.open() as f:
         schema = json.load(f)
     return JsonResponse(schema)
 
@@ -324,3 +327,53 @@ def request_alignment(request):
         return HttpResponse("The EBI did not return an alignment for protein '" + acc_num + "'. Try again later.")
     Alignment.objects.create(prots=prot_list, alignment=alignment)
     return HttpResponseRedirect("/alignments/" + prot_list)
+
+
+def interaction_plot_histograms(request, acc_num: str):
+    try:
+        dash_index = acc_num.index('-')
+        base_acc_num = acc_num[:dash_index]
+    except:
+        base_acc_num = acc_num
+    data_dir = CODE_DIR/'static'/'peptides'/'isoform abundance cancer vs not'
+    data_fname = data_dir/f'{base_acc_num}wide.csv'
+    try:
+        with data_fname.open() as f:
+            df = interaction_plot.process_csv(f)
+    except:
+        return HttpResponse(
+            'No MS intensity vs. isoform vs. cancer status data could be found for protein %s.' % acc_num
+        )
+    html = interaction_plot.histograms(df)
+    return render(
+        request,
+        'peptides/interaction_plot.html',
+        context={
+            'plot_html': html,
+            'acc_num': base_acc_num
+        }
+    )
+
+
+def download_interaction_plot_data(request, acc_num: str):
+    try:
+        dash_index = acc_num.index('-')
+        base_acc_num = acc_num[:dash_index]
+    except:
+        base_acc_num = acc_num
+    data_dir = CODE_DIR/'static'/'peptides'/'isoform abundance cancer vs not'
+    data_fname = data_dir/f'{base_acc_num}wide.csv'
+    try:
+        with data_fname.open() as f:
+            csv = f.read()
+    except:
+        return HttpResponse(
+            'No MS intensity vs. isoform vs. cancer status data could be found for protein %s.' % acc_num
+        )
+    disposition =  'attachment; filename = "MS intensity vs cancer status vs isoform %s.csv"' % base_acc_num
+    # this content-type indicates that this is a utf-8 text file
+    content_type = 'text; charset = "utf-8"'
+    return HttpResponse(
+        csv,
+        headers = {'content-disposition': disposition, 'content-type': content_type},
+    )

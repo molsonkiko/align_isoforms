@@ -1,5 +1,5 @@
 # Change Log
-All [notable changes](#0112---2022-12-01) to this project will be documented in this file.
+All [notable changes](#0120---2022-12-19) to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### To Be Fixed
 
 - nothing known
+
+## [0.12.0] - 2022-12-19
+
+1. Add interaction plots, showing relative abundances of different isoforms in cancer vs. non-cancer tissue.
 
 ## [0.11.2] - 2022-12-01
 
