@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.12.1] - 2023-01-01
+
+Attempt to fix occasional connection problems with EBI computer when requesting alignment by slowing down ping rate when response is slow.
+
 ## [0.12.0] - 2022-12-19
 
 1. Add interaction plots, showing relative abundances of different isoforms in cancer vs. non-cancer tissue.

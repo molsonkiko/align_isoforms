@@ -4,6 +4,7 @@ import time
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import requests
+from requests import HTTPError
 
 # see https://rest.uniprot.org/docs/#/
 BASE_QUERY = "https://rest.uniprot.org/uniprotkb/search?query=accession%3D"
@@ -113,9 +114,18 @@ def request_multi_alignment(seqs: dict) -> str:
     r.raise_for_status()
     job_id = r.text
     job_status = 'RUNNING'
+    ping_interval = 4
+    pings = 0
     # ping the server every few seconds to see if the job is done
     while job_status == 'RUNNING':
-        time.sleep(4)
+        time.sleep(ping_interval)
+        pings += 1
+        if pings % 5 == 0:
+            ping_interval *= 2
+            # we'll just assume that the server can't respond right now if it takes too long
+            # to respond. With this schedule, the EBI computer has 140 seconds to respond.
+            if ping_interval == 32:
+                raise HTTPError(fp=None)
         job_status_req = requests.get(
             f"https://www.ebi.ac.uk/Tools/services/rest/clustalo/status/{job_id}")
         job_status_req.raise_for_status()
