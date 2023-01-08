@@ -10,7 +10,14 @@
         <div id="plot">
             {% autoescape off %}{{ plot_html }}{% endautoescape %}
         </div>
-        <p>Vertical lines in plots indicate the mean MS intensities.</p>
+        {% if is_histograms %}
+            <p>Vertical lines in plots indicate the mean MS intensities.</p>
+            <p><a href="?type=whisker">View as whisker plot</a></p>
+        {% else %}
+            <p>The error bars cover 1 standard deviation from the mean.</p>
+            <p><a href="?type=hist">View as histograms</a></p>
+        {% endif %}
+        <p></p>
         <a class="button" href="/download_interaction_plot_data/{{ acc_num }}">
             Download data
         </a>

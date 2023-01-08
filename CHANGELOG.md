@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
+## [0.13.0] - 2023-01-07
+
+### Added
+
+1. Whisker interaction plots as an alternative to the histograms already available.
+2. Index page now shows whether an alignment has been downloaded for a protein.
+
 ## [0.12.1] - 2023-01-01
 
 Attempt to fix occasional connection problems with EBI computer when requesting alignment by slowing down ping rate when response is slow.

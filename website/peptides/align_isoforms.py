@@ -1,5 +1,7 @@
 # lib libraries
+import logging
 import time
+import traceback
 # 3rd-party libraries
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -20,7 +22,11 @@ def get_sequence(prot: dict) -> str:
     '''prot: JSON from the UniProt API for a protein
     Returns: the protein's sequence as a string
     '''
-    return prot[0]['sequence']['value']
+    try:
+        return prot[0]['sequence']['value']
+    except:
+        logging.error(traceback.format_exc())
+        raise
 
 def get_isoform_ids(prot: dict) -> list:
     '''prot: JSON from the UniProt API for a protein
@@ -67,7 +73,10 @@ def get_all_prots(acc_num: str) -> dict:
     isos = get_isoforms(prot)
     # remove the isoforms with the same sequence as the base acc num
     for iso_acc_num, iso in list(isos.items()):
-        iso_seq = get_sequence(iso)
+        try:
+            iso_seq = get_sequence(iso)
+        except:
+            continue
         if iso_acc_num != acc_num and iso_seq == seq:
             del isos[iso_acc_num]
     return {**prots, **isos}
@@ -77,7 +86,13 @@ def get_all_seqs(prots: dict) -> dict:
     (returned by get_all_prots).
     Returns: a dict mapping those accession numbers to the sequences
     '''
-    return {k: get_sequence(v) for k, v in prots.items()}
+    out = {}
+    for k, v in prots.items():
+        try:
+            out[k] = get_sequence(v)
+        except:
+            continue
+    return out
 
 def to_fasta(seqs: dict, sort: bool = True) -> str:
     '''seqs: an {accession number -> UniProt API JSON} dict returned by
@@ -104,7 +119,7 @@ def request_multi_alignment(seqs: dict) -> str:
     r = requests.post(
         "https://www.ebi.ac.uk/Tools/services/rest/clustalo/run", 
         data={
-            "email": "lestimpe@gmail.com",
+            "email": "mjolsonsfca@gmail.com",
             "iterations": 1,
             "outfmt": "clustal_num",
             "order": "aligned",
@@ -144,7 +159,7 @@ def align_isoforms(acc_num: str) -> str:
     prots = get_all_prots(acc_num)
     seqs = get_all_seqs(prots)
     if len(seqs) < 2:
-        print(f"The protein with UniProt accession number {acc_num} has only one isoform")
+        logging.info(f"The protein with UniProt accession number {acc_num} has only one isoform")
         (acc1, seq1) = list(seqs.items())[0]
         return seq1
     return request_multi_alignment(seqs)

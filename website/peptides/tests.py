@@ -699,6 +699,12 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         plot_title = '<title>P07585 isoforms interaction plot histograms</title>'
         self.assertInHTML(plot_title, html)
 
+    def test_interaction_plot_whisker(self):
+        response = self.client.get('/interaction_plot/P07585?type=whisker')
+        html = response.content.decode()
+        plot_title = '<title>P07585 isoforms interaction plot whisker</title>'
+        self.assertInHTML(plot_title, html)
+
     def test_interaction_plot_bad_acc_num(self):
         response = self.client.get('/interaction_plot/ZZZZZZZZ')
         html = response.content.decode()

@@ -66,18 +66,22 @@
         <button onclick = "highlight_all_peptides();">
             Highlight all peptides
         </button>
-        <p>Mass spec peptides unique to this isoform:</p>
-        <ul>
-        {% for peptide in peptides %}
-            <li>
-                <a class = "peptide-link" href = "#{{peptide.location}}_0"
-                    onclick = 'highlight_locs("{{ peptide.location }}");'>
-                    @{{ peptide.location }}
-                </a>:
-                <span class="sequence">{{ peptide.peptide }}</span>
-            </li>
-        {% endfor %}
-        </ul>
+        {% if peptides|length_is:"0" %}
+        <p>No mass spec peptides unique to this isoform.</p>
+        {% else %}
+            <p>Mass spec peptides unique to this isoform:</p>
+            <ul>
+            {% for peptide in peptides %}
+                <li>
+                    <a class = "peptide-link" href = "#{{peptide.location}}_0"
+                        onclick = 'highlight_locs("{{ peptide.location }}");'>
+                        @{{ peptide.location }}
+                    </a>:
+                    <span class="sequence">{{ peptide.peptide }}</span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
         <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
     </body>
 </html>

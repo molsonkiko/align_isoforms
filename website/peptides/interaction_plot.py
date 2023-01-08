@@ -2,12 +2,20 @@ import pathlib
 from bokeh.embed import file_html
 from bokeh.io import output_file
 from bokeh.layouts import column
-from bokeh.models import ColumnDataSource, Whisker, HoverTool, Div
+from bokeh.models import (
+    ColumnDataSource,
+    Whisker,
+    HoverTool,
+    Div
+)
+from bokeh.palettes import Category20
 from bokeh.plotting import figure, show
 import bokeh.resources as bkr
 # from bokeh.transform import jitter, factor_cmap
 import numpy as np
 import pandas as pd
+
+CUR_DIR = pathlib.Path(__file__).parent
 
 def process_csv(buffer):
     df = pd.read_csv(buffer)
@@ -28,11 +36,13 @@ def suptitle_and_primary_iso(groups: list):
         if '.' not in acc_num: # primary isoform
             base_acc_num = acc_num
             break
+    if '.' in base_acc_num:
+        base_acc_num = base_acc_num[:base_acc_num.index('.')]
     return ([Div(text=('<h2 style="text-align:center">'
                        f'Interaction plot for {base_acc_num} isoforms</h2>'))],
         base_acc_num)
 
-def histograms(df: pd.DataFrame, bins=20, show=False):
+def histograms(df: pd.DataFrame, bins=20, show_figs=False):
     '''
     For each isoform, make two histograms,
     one red for cancer and one blue for non-cancer.
@@ -93,10 +103,10 @@ def histograms(df: pd.DataFrame, bins=20, show=False):
         # 'mute' has the advantage of not completely hiding the histogram
         figs.append(p)
     fig_rows = column(figs, sizing_mode='stretch_width')
-    title=f'{base_acc_num} isoforms interaction plot histograms'
-    if show:
+    title = f'{base_acc_num} isoforms interaction plot histograms'
+    if show_figs:
         # create a file locally and open the plot
-        output_file(filename=f'static/peptides/interaction plot/Interaction plot histograms bokeh {base_acc_num}.html', 
+        output_file(filename=CUR_DIR/f'static/peptides/interaction plot example/Interaction plot histograms bokeh {base_acc_num}.html', 
             title=title)
         show(fig_rows)
         return
@@ -104,46 +114,85 @@ def histograms(df: pd.DataFrame, bins=20, show=False):
     
 
 
-# def points_with_error_bars(df: pd.DataFrame):
-#     df.is_cancer = df.is_cancer.map({True: 'cancer', False: 'non-cancer'})
-#     groups = list(df.groupby('acc_num').groups.items())
-#     figs, base_acc_num = suptitle_and_primary_iso(groups)
-#     classes =  ['cancer', 'non-cancer']
-#     for acc_num, inds in groups:
-#         p = figure(width=450, height=160, title=acc_num, x_range=classes)
-#         p.xgrid.grid_line_color = None
-#         subdf = df.iloc[inds, :]
-#         g = subdf.groupby('is_cancer')
-#         # add error bars
-#         upper = g.intensity.quantile(0.8)
-#         lower = g.intensity.quantile(0.2)
-#         err_src = ColumnDataSource(data = {
-#             'base': classes, 'upper': upper, 'lower': lower
-#         })
-#         error = Whisker(base='base', upper='upper', lower='lower', source=err_src,
-#             level='annotation', line_width=2)
-#         error.upper_head.size = 20
-#         error.lower_head.size = 20
-#         p.add_layout(error)
-#         # add points for each value, with some jitter
-#         p.circle(jitter('is_cancer', width=0.18, range=p.x_range),
-#             'intensity', source=subdf,
-#             alpha=0.5, size=13,
-#             line_color='white', color=factor_cmap('is_cancer', 'HighContrast3', classes))
-#         p.yaxis.axis_label = 'MS intensity'
-#         p.title = acc_num
-#         figs.append(p)
-#     output_file(filename=f'static/peptides/interaction plot/Interaction plot whisker bokeh {base_acc_num}.html', 
-#         title=f'{base_acc_num} isoforms interaction plot whisker')
-#     show(column(figs, sizing_mode='stretch_width'))
+def points_with_error_bars(df: pd.DataFrame, show_figs=False):
+    '''For each accession number, create a plot
+    where cancer and non-cancer each have error bar
+    of +/- 1 standard deviation and a big point at mean intensity.'''
+    df.is_cancer = df.is_cancer.map({True: 'cancer', False: 'non-cancer'})
+    groups = list(df.groupby('acc_num').groups.items())
+    figs, base_acc_num = suptitle_and_primary_iso(groups)
+    classes =  ['cancer', 'non-cancer']
+    title = f'{base_acc_num} isoforms interaction plot whisker'
+    # get +/-1 standard deviation data for each isoform
+    ymin = float('inf')
+    ymax = 0
+    uppers = []
+    lowers = []
+    for _, inds in groups:
+        g = df.iloc[inds, :].groupby('is_cancer')
+        stddev = g.intensity.std()
+        mean_ = g.intensity.mean()
+        upper = mean_ + stddev
+        lower = mean_ - stddev
+        plus_1_std = max(upper)
+        minus_1_std = max(lower)
+        if minus_1_std < ymin:
+            ymin = minus_1_std
+        if plus_1_std > ymax:
+            ymax = plus_1_std
+        lowers.append(lower)
+        uppers.append(upper)
+    ypad = (ymax - ymin) * 0.1
+    ymin -= ypad
+    ymax += ypad
+    # make a separate plot for each accession number
+    p = figure(width=700, height=300, x_range=classes, y_range=(ymin, ymax))
+    ngroups = len(groups)
+    colors = ['red', 'blue'] if ngroups == 2 else Category20[min(ngroups, 20)]
+    for ii, (acc_num, inds), upper, lower in zip(range(ngroups), groups, uppers, lowers):
+        color = colors[ii % 20]
+        p.xgrid.grid_line_color = None
+        subdf = df.iloc[inds, :]
+        g = subdf.groupby('is_cancer')
+        # add +/-1 standard deviation error bars
+        err_src = ColumnDataSource(data = {
+            'base': classes, 'upper': upper, 'lower': lower
+        })
+        error = Whisker(base='base', upper='upper', lower='lower', source=err_src,
+            level='annotation', line_width=2, line_color=color)
+        error.upper_head.size = 20
+        error.upper_head.line_color = color
+        error.lower_head.size = 20
+        error.lower_head.line_color = color
+        p.add_layout(error)
+        # add points at the mean intensities for each of cancer and non-cancer
+        means = [
+            subdf[subdf.is_cancer == 'cancer'].intensity.mean(),
+            subdf[subdf.is_cancer == 'non-cancer'].intensity.mean()
+        ]
+        p.line(x=['cancer', 'non-cancer'], y=means, color=color,
+            legend_label=acc_num)
+        p.scatter(x=['cancer', 'non-cancer'], y=means, size=8, color=color)
+        # add a label and a title indicating the accession number
+        p.yaxis.axis_label = 'MS intensity'
+        figs.append(p)
+    p.add_layout(p.legend[0], 'right')
+    fig_rows = column(figs, sizing_mode='stretch_width')
+    if show_figs:
+        # create a file locally and open the plot
+        output_file(filename=CUR_DIR/f'static/peptides/interaction plot example/Interaction plot whisker bokeh {base_acc_num}.html', 
+            title=title)
+        show(fig_rows)
+        return
+    return file_html(fig_rows, resources=bkr.CDN, title=title)
 
 
 if __name__ == '__main__':
     import sys
-    FDIR = pathlib.Path(__file__).parent/'static'/'peptides'/'isoform abundance cancer vs not'
+    FDIR = CUR_DIR/'static'/'peptides'/'isoform abundance cancer vs not'
     acc_num = sys.argv[1]
     fname = FDIR/f'{acc_num}wide.csv'
     with fname.open() as f:
         df = process_csv(f)
-        histograms(df, show=True)
-        # points_with_error_bars(df)
+        # histograms(df, show_figs=True)
+        points_with_error_bars(df, show_figs=True)

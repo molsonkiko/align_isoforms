@@ -1,7 +1,10 @@
+# lib libraries
 import json
-import os
+import logging
 from pathlib import Path
 import re
+import traceback
+# 3rd party libraries
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -26,6 +29,7 @@ def index_view(request):
             'npeps': len(prot.get_peptides()),
             'lenseq': len(prot.sequence),
             'n_isoforms': len(prot.get_isoforms()) + 1,
+            'has_alignment': 'Yes' if len(prot.get_alignments()) > 0 else 'No',
         }
         for prot in proteins
     ]
@@ -38,6 +42,7 @@ def index_view(request):
         'iso': 'n_isoforms',
         'len': 'lenseq',
         'npeps': 'npeps',
+        'align': 'has_alignment',
     }[orderby] # sort by accession number unless user says otherwise
     return render(
         request,
@@ -94,6 +99,7 @@ def get_all_data_related_to_prot(acc_num: str) -> bool:
     get a multiple sequence alignment of those isoforms,
     and for each peptide in the database that belongs to one of the isoforms,
     get its location in the sequence of that isoform.
+    Return False if an error was raised, else True
     '''
     # get uniprot data for the protein and save it to the database
     prot = uniprot_json(acc_num)
@@ -103,9 +109,10 @@ def get_all_data_related_to_prot(acc_num: str) -> bool:
     # now get all the uniprot data for all the isoforms of the protein
     prots = get_isoforms(prot)
     prot_seqs = get_all_seqs(prots)
+    seq = prot_seqs[og_acc_num]
     og_prot = Protein(
         acc_num = og_acc_num, 
-        sequence = prot_seqs[og_acc_num]
+        sequence = seq
     )
     og_prot.save(force_insert=True)
     prot_list = og_acc_num
@@ -161,6 +168,7 @@ def get_protein(request):
                 ("The server had an error while retrieving data on protein %s "
                 "(or its isoforms) from UniProt.") % acc_num
             )
+            logging.error(traceback.format_exc())
             response.status_code = 500
             return response
         return HttpResponseRedirect(
@@ -329,12 +337,13 @@ def request_alignment(request):
     return HttpResponseRedirect("/alignments/" + prot_list)
 
 
-def interaction_plot_histograms(request, acc_num: str):
+def interaction_plot_show(request, acc_num: str):
     try:
         dash_index = acc_num.index('-')
         base_acc_num = acc_num[:dash_index]
     except:
         base_acc_num = acc_num
+    is_histograms = request.GET.get('type', 'hist')[:4] == 'hist'
     data_dir = CODE_DIR/'static'/'peptides'/'isoform abundance cancer vs not'
     data_fname = data_dir/f'{base_acc_num}wide.csv'
     try:
@@ -344,13 +353,15 @@ def interaction_plot_histograms(request, acc_num: str):
         return HttpResponse(
             'No MS intensity vs. isoform vs. cancer status data could be found for protein %s.' % acc_num
         )
-    html = interaction_plot.histograms(df)
+    html = interaction_plot.histograms(df) if is_histograms \
+            else interaction_plot.points_with_error_bars(df)
     return render(
         request,
         'peptides/interaction_plot.html',
         context={
             'plot_html': html,
-            'acc_num': base_acc_num
+            'is_histograms': is_histograms,
+            'acc_num': base_acc_num,
         }
     )
 

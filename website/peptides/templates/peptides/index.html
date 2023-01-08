@@ -15,7 +15,7 @@ function compare_strings(a, b) {
     return 0;
 }
 
-function sort_prots_by(field, force_sort_descending) {
+function sort_prots_by(field, force_sort_descending, is_string) {
     var sort_descending = false;
     var sort_arrows = document.getElementsByClassName('sort-arrow');
     for (var ii = 0; ii < sort_arrows.length; ii++) {
@@ -31,8 +31,8 @@ function sort_prots_by(field, force_sort_descending) {
         }
         else arrow.innerHTML = '&#8597;'
     }
-    if (field === 'acc_num') {
-        prot_data.sort((a, b) => compare_strings(a.acc_num, b.acc_num));
+    if (is_string) {
+        prot_data.sort((a, b) => compare_strings(a[field], b[field]));
     }
     else {
         prot_data.sort((a, b) => a[field] - b[field]);
@@ -47,6 +47,7 @@ function sort_prots_by(field, force_sort_descending) {
         + '<td>' + datum.lenseq + '</td>'
         + '<td>' + datum.n_isoforms + '</td>'
         + '<td>' + datum.npeps + '</td>'
+        + '<td>' + datum.has_alignment + '</td>'
         + '</tr>'
         prots_table.innerHTML += table_row;
     }
@@ -65,17 +66,20 @@ window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
         <table>
             <thead>
                 <!-- 11014 is up arrow, 11015 is down arrow, 8597 is up-down arrow -->
-                <th scope="col" onclick="sort_prots_by('acc_num', false)">Accession number
+                <th scope="col" onclick="sort_prots_by('acc_num', false, true)">Accession number
                     <span class="sort-arrow" id="sort-acc_num">&#8597;</span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('lenseq', false)"> Sequence length
+                <th scope="col" onclick="sort_prots_by('lenseq', false, false)"> Sequence length
                     <span class="sort-arrow" id="sort-lenseq">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('n_isoforms', false)"># of isoforms
+                <th scope="col" onclick="sort_prots_by('n_isoforms', false, false)"># of isoforms
                     <span class="sort-arrow" id="sort-n_isoforms">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('npeps', false)"># of mass spec peptides
+                <th scope="col" onclick="sort_prots_by('npeps', false, false)"># of mass spec peptides
                     <span class="sort-arrow" id="sort-npeps">&#8597;</span>
+                </th>
+                <th scope="col" onclick="sort_prots_by('has_alignment', false, true)">Has sequence alignment
+                    <span class="sort-arrow" id="sort-has_alignment">&#8597;</span>
                 </th>
             </thead>
             <tbody id="prot-table">
