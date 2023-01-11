@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 # from django.views.decorators.cache import never_cache
+from requests import Timeout
 
 from .align_isoforms import get_isoforms, get_all_seqs, request_multi_alignment, get_protein as uniprot_json, align_isoforms
 from .models import Protein, Peptide, Isoform, Alignment, is_acc_num
@@ -163,11 +164,18 @@ def get_protein(request):
                 return HttpResponse(
                     "Could not find UniProt data for the accession number " + acc_num
                 )
-        except:
-            response = HttpResponse(
-                ("The server had an error while retrieving data on protein %s "
-                "(or its isoforms) from UniProt.") % acc_num
-            )
+        except Exception as ex:
+            if isinstance(ex, Timeout):
+                response = HttpResponse(
+                    ("The EBI computer took more than 5 minutes to respond with "
+                    "a sequence alignment for the isoforms of protein %s"
+                    ", so the connection was terminated.") % acc_num
+                )
+            else:
+                response = HttpResponse(
+                    ("The server had an error while retrieving data on protein %s "
+                    "(or its isoforms) from UniProt.") % acc_num
+                )
             logging.error(traceback.format_exc())
             response.status_code = 500
             return response
@@ -328,7 +336,9 @@ def request_alignment(request):
     if existing_alignment:
         return HttpResponseRedirect('/alignments/' + prot_list)
     try:
-        alignment = align_isoforms(acc_num)
+        seq_dict = {prot.acc_num: prot.sequence}
+        seq_dict.update({iso.acc_num: iso.sequence for iso in isoforms})
+        alignment = request_multi_alignment(seq_dict)
     except Exception as ex:
         return HttpResponse("While requesting alignment, got the following error: " + str(ex))
     if not alignment:

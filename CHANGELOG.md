@@ -1,5 +1,5 @@
 # Change Log
-All [notable changes](#0120---2022-12-19) to this project will be documented in this file.
+All [notable changes](#0123---2023-01-11) to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -20,12 +20,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
-## [0.13.0] - 2023-01-07
-
 ### Added
 
 1. Whisker interaction plots as an alternative to the histograms already available.
 2. Index page now shows whether an alignment has been downloaded for a protein.
+
+## [0.12.3] - 2023-01-11
+
+- For requesting sequence alignments, increase wait period before timing out connection with EBI computer to 5 minutes.
+- Other improvements to hopefully improve speed of requesting alignments when the initial request failed.
+
+## [0.12.2] - 2023-01-07
+
+Add option to view interaction plots as whiskers.
 
 ## [0.12.1] - 2023-01-01
 

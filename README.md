@@ -13,6 +13,6 @@ Basic use:
 
 There is now [a website](https://alignisoforms-production.up.railway.app/) that can do all of these things and has a handy tool for visualizing the locations of mass spec peptides of interest.
 
-Current version: [0.12.0](/CHANGELOG.md#0120---2022-12-19)
+Current version: [0.12.3](/CHANGELOG.md#0123---2023-01-11)
 
 ![Example of alignment with highlighted peptides](/website/alignment%20page%20all_peptides_highlighted.PNG)

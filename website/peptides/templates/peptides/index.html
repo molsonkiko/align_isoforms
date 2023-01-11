@@ -62,7 +62,7 @@ window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
         <h2><a href="/about">What is this site for?</a></h2>
         <p><a href = "/site_map">Site map</a></p>
         <a href="get_protein">Find a new protein</a>
-        <h3>Proteins so far:</h3>
+        <h3>Proteins so far ({{ prot_data | length }}):</h3>
         <table>
             <thead>
                 <!-- 11014 is up arrow, 11015 is down arrow, 8597 is up-down arrow -->

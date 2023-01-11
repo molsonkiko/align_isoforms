@@ -6,7 +6,7 @@ import traceback
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import requests
-from requests import HTTPError
+from requests import Timeout
 
 # see https://rest.uniprot.org/docs/#/
 BASE_QUERY = "https://rest.uniprot.org/uniprotkb/search?query=accession%3D"
@@ -20,6 +20,7 @@ def get_protein(acc_num: str) -> dict:
 
 def get_sequence(prot: dict) -> str:
     '''prot: JSON from the UniProt API for a protein
+    
     Returns: the protein's sequence as a string
     '''
     try:
@@ -30,6 +31,7 @@ def get_sequence(prot: dict) -> str:
 
 def get_isoform_ids(prot: dict) -> list:
     '''prot: JSON from the UniProt API for a protein
+
     Returns: a list of the UniProt accession nums for all isoforms
     '''
     comments = prot[0]['comments']
@@ -50,6 +52,7 @@ def get_isoform_ids(prot: dict) -> list:
 
 def get_isoforms(prot: dict) -> dict:
     '''prot: JSON from the UniProt API for a protein
+
     Returns: A mapping of UniProt accession nums to the UniProt API JSON
     for all isoforms of the protein
     '''
@@ -64,6 +67,7 @@ def get_isoforms(prot: dict) -> dict:
 
 def get_all_prots(acc_num: str) -> dict:
     '''acc_num: The UniProt accession number of a protein
+
     Returns: a dict mapping the UniProt accession numbers for all distinct
     isoforms of a protein to the UniProt API JSON for that isoform.
     '''
@@ -84,6 +88,7 @@ def get_all_prots(acc_num: str) -> dict:
 def get_all_seqs(prots: dict) -> dict:
     '''prots: a dict mapping accession numbers to UniProt API JSON
     (returned by get_all_prots).
+
     Returns: a dict mapping those accession numbers to the sequences
     '''
     out = {}
@@ -97,6 +102,10 @@ def get_all_seqs(prots: dict) -> dict:
 def to_fasta(seqs: dict, sort: bool = True) -> str:
     '''seqs: an {accession number -> UniProt API JSON} dict returned by
     get_all_prots.
+
+    if sort, sort the sequences ASCIIbetically
+    (e.g. BLAH-11 comes before BLAH-2) first.
+
     Returns: The accession numbers and sequences of those proteins in FASTA
     format.
     '''
@@ -113,7 +122,9 @@ def to_fasta(seqs: dict, sort: bool = True) -> str:
 WEBSITE_API = "https://rest.uniprot.org/beta"
 def request_multi_alignment(seqs: dict) -> str:
     '''Send a request to the European Bioinformatics Institute
-    for multiple alignment of several sequences
+    for multiple alignment of several sequences.
+
+    seqs: a dict mapping UniProt accession numbers to protein sequences.
     '''
     fasta = to_fasta(seqs)
     r = requests.post(
@@ -138,9 +149,9 @@ def request_multi_alignment(seqs: dict) -> str:
         if pings % 5 == 0:
             ping_interval *= 2
             # we'll just assume that the server can't respond right now if it takes too long
-            # to respond. With this schedule, the EBI computer has 140 seconds to respond.
-            if ping_interval == 32:
-                raise HTTPError(fp=None)
+            # to respond. With this schedule, the EBI computer has 300 seconds to respond.
+            if ping_interval == 64:
+                raise Timeout()
         job_status_req = requests.get(
             f"https://www.ebi.ac.uk/Tools/services/rest/clustalo/status/{job_id}")
         job_status_req.raise_for_status()
@@ -153,9 +164,7 @@ def request_multi_alignment(seqs: dict) -> str:
 
 def align_isoforms(acc_num: str) -> str:
     '''get all isoforms of the protein with accession number acc_num,
-    and return a sequence alignment.
-    Can also pass in keyword arguments to set parameters for the alignment,
-    if there are only two isoforms to align'''
+    and return a sequence alignment.'''
     prots = get_all_prots(acc_num)
     seqs = get_all_seqs(prots)
     if len(seqs) < 2:
