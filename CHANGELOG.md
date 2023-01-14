@@ -20,10 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - nothing known
 
-### Added
+## [0.12.4] - 2023-01-14
 
-1. Whisker interaction plots as an alternative to the histograms already available.
-2. Index page now shows whether an alignment has been downloaded for a protein.
+- Improve index page load speed by only showing 50 rows initially and allowing later loading of more.
 
 ## [0.12.3] - 2023-01-11
 
@@ -32,7 +31,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.12.2] - 2023-01-07
 
-Add option to view interaction plots as whiskers.
+### Added
+
+1. Whisker interaction plots as an alternative to the histograms already available.
+2. Index page now shows whether an alignment has been downloaded for a protein.
 
 ## [0.12.1] - 2023-01-01
 

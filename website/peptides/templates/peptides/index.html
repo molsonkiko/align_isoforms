@@ -9,13 +9,18 @@
         <script>
 const prot_data = JSON.parse(document.getElementById('prot_data').textContent);
 
+var ROWS_PER_ADDITION = 50;
+var MAX_IDX = Math.min(ROWS_PER_ADDITION, prot_data.length);
+
 function compare_strings(a, b) {
     if (a < b) return -1;
     if (a > b) return 1;
     return 0;
 }
 
-function sort_prots_by(field, force_sort_descending, is_string) {
+function sort_prots_by(field, force_sort_descending) {
+    if (prot_data.length === 0) return;
+    var is_string = typeof prot_data[0][field] === "string";
     var sort_descending = false;
     var sort_arrows = document.getElementsByClassName('sort-arrow');
     for (var ii = 0; ii < sort_arrows.length; ii++) {
@@ -32,6 +37,7 @@ function sort_prots_by(field, force_sort_descending, is_string) {
         else arrow.innerHTML = '&#8597;'
     }
     if (is_string) {
+        // default sorting of strings doesn't really work in JavaScript
         prot_data.sort((a, b) => compare_strings(a[field], b[field]));
     }
     else {
@@ -40,17 +46,34 @@ function sort_prots_by(field, force_sort_descending, is_string) {
     if (sort_descending || force_sort_descending) prot_data.reverse();
     var prots_table = document.getElementById('prot-table');
     prots_table.innerHTML = '';
-    for (var ii = 0; ii < prot_data.length; ii++) {
-        var datum = prot_data[ii];
-        var table_row = '<tr>' +
-        '<th scope="row"><a href="proteins/' + datum.acc_num + '">' + datum.acc_num + '</a></th>'
-        + '<td>' + datum.lenseq + '</td>'
-        + '<td>' + datum.n_isoforms + '</td>'
-        + '<td>' + datum.npeps + '</td>'
-        + '<td>' + datum.has_alignment + '</td>'
-        + '</tr>'
-        prots_table.innerHTML += table_row;
+    add_rows(false);
+}
+
+function table_row(ii) {
+    var datum = prot_data[ii];
+    return '<tr>' +
+    '<th scope="row"><a href="proteins/' + datum.acc_num + '">' + datum.acc_num + '</a></th>'
+    + '<td>' + datum.lenseq + '</td>'
+    + '<td>' + datum.n_isoforms + '</td>'
+    + '<td>' + datum.npeps + '</td>'
+    + '<td>' + datum.has_alignment + '</td>'
+    + '</tr>';
+}
+
+function add_rows(increase_length) {
+    if (increase_length) {
+        MAX_IDX = Math.min(MAX_IDX + ROWS_PER_ADDITION, prot_data.length);
     }
+    document.getElementById('num-prots').innerHTML = 'Showing ' + MAX_IDX + ' out of ' + prot_data.length;
+    var prots_table = document.getElementById('prot-table');
+    prots_table.innerHTML = '';
+    for (var ii = 0; ii < MAX_IDX; ii++) {
+        prots_table.innerHTML += table_row(ii);
+    }
+    var add_rows_button = document.getElementById("add-rows");
+    add_rows_button.innerHTML = (MAX_IDX < prot_data.length)
+        ? '<br><button onclick="add_rows(true)">Show more rows</button>'
+        : '';
 }
 
 // sort prots by accession number A-Z on page load, unless user requested something else
@@ -62,23 +85,23 @@ window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
         <h2><a href="/about">What is this site for?</a></h2>
         <p><a href = "/site_map">Site map</a></p>
         <a href="get_protein">Find a new protein</a>
-        <h3>Proteins so far ({{ prot_data | length }}):</h3>
+        <h3>Proteins so far (<span id="num-prots"></span>):</h3>
         <table>
             <thead>
                 <!-- 11014 is up arrow, 11015 is down arrow, 8597 is up-down arrow -->
-                <th scope="col" onclick="sort_prots_by('acc_num', false, true)">Accession number
+                <th scope="col" onclick="sort_prots_by('acc_num', false)">Accession number
                     <span class="sort-arrow" id="sort-acc_num">&#8597;</span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('lenseq', false, false)"> Sequence length
+                <th scope="col" onclick="sort_prots_by('lenseq', false)"> Sequence length
                     <span class="sort-arrow" id="sort-lenseq">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('n_isoforms', false, false)"># of isoforms
+                <th scope="col" onclick="sort_prots_by('n_isoforms', false)"># of isoforms
                     <span class="sort-arrow" id="sort-n_isoforms">&#8597; </span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('npeps', false, false)"># of mass spec peptides
+                <th scope="col" onclick="sort_prots_by('npeps', false)"># of mass spec peptides
                     <span class="sort-arrow" id="sort-npeps">&#8597;</span>
                 </th>
-                <th scope="col" onclick="sort_prots_by('has_alignment', false, true)">Has sequence alignment
+                <th scope="col" onclick="sort_prots_by('has_alignment', false)">Has sequence alignment
                     <span class="sort-arrow" id="sort-has_alignment">&#8597;</span>
                 </th>
             </thead>
@@ -86,6 +109,7 @@ window.onload = () => sort_prots_by('{{ orderby }}', {{ sort_reverse }});
                 <!-- filled by sort_prots_by(field) -->
             </tbody>
         </table>
+        <div id="add-rows"></div>
         <footer>Copyright 2022 Mark Johnston Olson (mjolsonsfca@gmail.com)</footer>
     </body>
 </html>
