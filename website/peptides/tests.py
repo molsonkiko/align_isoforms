@@ -710,6 +710,21 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         html = response.content.decode()
         self.assertIn('No MS intensity vs. isoform vs. cancer status data could be found for protein ZZZZZZZZ.', html)
 
+    def test_index_not_crash_bad_orderby_value(self):
+        self.client.get('/?orderby=-roenroenreon')
+        self.assertTrue(True)
+
+    def test_index_not_crash_query_term_other_than_orderby(self):
+        self.client.get('/?orrneoren=-fneorne')
+        self.assertTrue(True)
+
+    def test_protein_form_not_crash_non_integer_width(self):
+        self.client.get('/interaction_plot/P07585?width=bozo')
+        self.assertTrue(True)
+
+    def test_alignment_form_not_crash_non_integer_width(self):
+        self.client.get('/alignments/BLUTEN-3,BLUTEN,BLUTEN-2?width=fubar')
+        self.assertTrue(True)
 
 
 ##########

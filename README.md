@@ -13,6 +13,8 @@ Basic use:
 
 There is now [a website](https://alignisoforms-production.up.railway.app/) that can do all of these things and has a handy tool for visualizing the locations of mass spec peptides of interest.
 
-Current version: [0.12.3](/CHANGELOG.md#0123---2023-01-11)
+The website is being actively developed and already has plenty of data in its database, while the Colab notebook is very bare-bones.
+
+Current version: [0.12.5](/CHANGELOG.md#0125---2023-02-07)
 
 ![Example of alignment with highlighted peptides](/website/alignment%20page%20all_peptides_highlighted.PNG)

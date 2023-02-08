@@ -44,7 +44,7 @@ def index_view(request):
         'len': 'lenseq',
         'npeps': 'npeps',
         'align': 'has_alignment',
-    }[orderby] # sort by accession number unless user says otherwise
+    }.get(orderby, 'acc_num') # sort by accession number unless user says otherwise
     return render(
         request,
         'peptides/index.html',
@@ -62,7 +62,10 @@ def about_view(request):
 
 
 def protein_view(request, acc_num: str):
-    width = int(request.GET.get('width', 120))
+    try:
+        width = int(request.GET.get('width', 120))
+    except:
+        width = 120
     num_offset = 10 + 9 * width
     if acc_num.endswith('-1'):
         acc_num = acc_num[:-2]
@@ -185,7 +188,10 @@ def get_protein(request):
 
 
 def alignments_view(request, acc_nums: str):
-    width = int(request.GET.get('width', 60))
+    try:
+        width = int(request.GET.get('width', 60))
+    except:
+        width = 60
     num_offset = 120 + 9 * width
     alignment = get_object_or_404(Alignment, pk=acc_nums)
     acc_num_list = acc_nums.split(',')

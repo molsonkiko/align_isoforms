@@ -1,5 +1,5 @@
 # Change Log
-All [notable changes](#0123---2023-01-11) to this project will be documented in this file.
+All [notable changes](#0125---2023-02-07) to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### To Be Fixed
 
 - nothing known
+
+## [0.12.5] - 2023-02-07
+
+- update requirements.txt to latest versions of everything
+- add error mitigation to avoid server errors when user enters an invalid query for `orderby` on the index form or `width` on the protein and alignments forms.
 
 ## [0.12.4] - 2023-01-14
 
