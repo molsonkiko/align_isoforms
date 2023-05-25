@@ -8,6 +8,9 @@ from Bio.SeqRecord import SeqRecord
 import requests
 from requests import Timeout
 
+logging.basicConfig(level = logging.DEBUG,
+                    format = '%(levelname)s: %(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
 # see https://rest.uniprot.org/docs/#/
 BASE_QUERY = "https://rest.uniprot.org/uniprotkb/search?query=accession%3D"
 def get_protein(acc_num: str) -> dict:
@@ -15,8 +18,12 @@ def get_protein(acc_num: str) -> dict:
     API documentation: https://rest.uniprot.org/docs/#/uniprotkb/searchCursor
     '''
     resp = requests.get(BASE_QUERY + acc_num)
-    resp.raise_for_status()
-    return resp.json()['results']
+    try:
+        resp.raise_for_status()
+    except Exception as ex:
+        logging.error(f"Error while getting protein:\r\n{ex}")
+        raise
+    return resp.json()['results'][0]
 
 def get_sequence(prot: dict) -> str:
     '''prot: JSON from the UniProt API for a protein
@@ -24,9 +31,9 @@ def get_sequence(prot: dict) -> str:
     Returns: the protein's sequence as a string
     '''
     try:
-        return prot[0]['sequence']['value']
+        return prot['sequence']['value']
     except:
-        logging.error(traceback.format_exc())
+        logging.error(f"Error while getting sequence: {traceback.format_exc()}")
         raise
 
 def get_isoform_ids(prot: dict) -> list:
@@ -34,9 +41,11 @@ def get_isoform_ids(prot: dict) -> list:
 
     Returns: a list of the UniProt accession nums for all isoforms
     '''
-    comments = prot[0]['comments']
+    comments = prot['comments']
     out = set()
     for comment in comments:
+        if comment['commentType'] != 'ALTERNATIVE PRODUCTS':
+            continue
         isoforms = comment.get('isoforms')
         if not isoforms:
             continue
@@ -61,7 +70,8 @@ def get_isoforms(prot: dict) -> dict:
     for id_ in iso_ids:
         try:
             seqs[id_] = get_protein(id_)
-        except:
+        except Exception as ex:
+            logging.info(f"Error while getting protein with isoform id {id_}:\r\n{ex}")
             continue
     return seqs
 
@@ -162,13 +172,24 @@ def request_multi_alignment(seqs: dict) -> str:
     resp.raise_for_status()
     return resp.text
 
-def align_isoforms(acc_num: str) -> str:
+def align_isoforms(acc_num: str) -> tuple[dict, str, bool]:
     '''get all isoforms of the protein with accession number acc_num,
-    and return a sequence alignment.'''
-    prots = get_all_prots(acc_num)
-    seqs = get_all_seqs(prots)
+    and return a tuple:
+    (mapping of accession numbers to sequences,
+    alignment of sequences)'''
+    try:
+        prots = get_all_prots(acc_num)
+        seqs = get_all_seqs(prots)
+    except Exception as ex:
+        logging.error(f"Error while retreiving data from UniProt for accession number {acc_num}:\r\n{ex}")
+        return None, None
     if len(seqs) < 2:
-        logging.info(f"The protein with UniProt accession number {acc_num} has only one isoform")
-        (acc1, seq1) = list(seqs.items())[0]
-        return seq1
-    return request_multi_alignment(seqs)
+        logging.info(f"We could only find one isoform of the protein with UniProt accession number {acc_num} on UniProt.")
+        seq1 = list(seqs.values())[0]
+        return seqs, seq1
+    try:
+        logging.info(f"Got sequences\r\n{seqs}")
+        return seqs, request_multi_alignment(seqs)
+    except Exception as ex:
+        logging.error(f"Error while trying to retrieve alignment for proteins {list(seqs.keys())}:\r\n{ex}")
+        return seqs, None

@@ -14,7 +14,9 @@ CODE_DIR = Path(__file__).parent
 
 class WebsiteTests(TestCase):
     maxDiff = 1000
-    successfully_downloaded_P56856 = False
+    got_P56856 = False
+    got_P56856_isos = False
+
     def setUpTestData():
         '''Create a simple database with three isoforms,
         their peptides, and their multiple sequence
@@ -80,7 +82,10 @@ CLUSTAL O(1.2.4) multiple sequence alignment
             prot = 'P56856',
             peptide = 'TSVFQYEGLWR'
         )
-        __class__.successfully_downloaded_P56856 = get_all_data_related_to_prot('P56856')
+        (
+            __class__.got_P56856,
+            __class__.got_P56856_isos
+        ) = get_all_data_related_to_prot('P56856')
         # finally create one-real-seeming protein with no peptides
         Protein.objects.create(acc_num = 'P56854', sequence = 'MMM')
         # create a superuser
@@ -194,7 +199,7 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         )
     
     def test_query_uniprot(self):
-        self.assertTrue(self.successfully_downloaded_P56856)
+        self.assertTrue(self.got_P56856 and self.got_P56856_isos)
         p56856 = Protein.objects.get(acc_num = 'P56856')
         p56856_isoforms = [x.acc_num for x in p56856.get_isoforms()]
         self.assertEqual(p56856_isoforms, ['P56856-2'])
@@ -514,7 +519,7 @@ CLUSTAL O(1.2.4) multiple sequence alignment
         self.assertEqual(response.status_code, 500)
         # this is a server error, so status code that's appropriate
         self.assertIn(
-            "The server had an error while retrieving data on protein A0A023GPI8 (or its isoforms) from UniProt.",
+            'We could only find one isoform of the protein with UniProt accession number A0A023GPI8 on UniProt.',
             html
         )
 

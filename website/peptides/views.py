@@ -98,52 +98,46 @@ def protein_view(request, acc_num: str):
     )
 
 
-def get_all_data_related_to_prot(acc_num: str) -> bool:
+def get_all_data_related_to_prot(acc_num: str) -> tuple[bool, bool, bool]:
     '''Get all isoforms of protein with UniProt accession number acc_num,
     get a multiple sequence alignment of those isoforms,
     and for each peptide in the database that belongs to one of the isoforms,
     get its location in the sequence of that isoform.
-    Return False if an error was raised, else True
+    Return three bools:
+    (got data for at least one isoform,
+    got data for multiple isoforms)
     '''
-    # get uniprot data for the protein and save it to the database
-    prot = uniprot_json(acc_num)
-    if not prot:
-        return False
-    og_acc_num = acc_num
-    # now get all the uniprot data for all the isoforms of the protein
-    prots = get_isoforms(prot)
-    prot_seqs = get_all_seqs(prots)
-    seq = prot_seqs[og_acc_num]
+    prot_seqs, alignment = align_isoforms(acc_num)
+    if not prot_seqs:
+        return False, False
+    if len(prot_seqs) < 2:
+        return True, False
+    seq = prot_seqs[acc_num]
     og_prot = Protein(
-        acc_num = og_acc_num, 
+        acc_num = acc_num, 
         sequence = seq
     )
     og_prot.save(force_insert=True)
-    prot_list = og_acc_num
+    prot_list = ','.join(prot_seqs.keys())
     # add each isoform to the database
-    for acc_num, seq in prot_seqs.items():
-        if acc_num == og_acc_num:
+    for acc_num_2, seq in prot_seqs.items():
+        if acc_num_2 == acc_num:
             continue
-        if acc_num.endswith('-1'):
-            acc_num = acc_num[:-2]
+        if acc_num_2.endswith('-1'):
+            acc_num_2 = acc_num_2[:-2]
         prot = Protein(
-            acc_num = acc_num, 
+            acc_num = acc_num_2, 
             sequence = seq
         )
-        prot_list += ',' + acc_num
         prot.save(force_insert=True)
         # also add a relationschip between og_prot and new prot
         Isoform.objects.create(
-            prot_1 = Protein.objects.get(acc_num = og_acc_num),
-            prot_2 = Protein.objects.get(acc_num = acc_num)
+            prot_1 = Protein.objects.get(acc_num = acc_num),
+            prot_2 = Protein.objects.get(acc_num = acc_num_2)
         )
-    try:
-        # finally, get a multiple sequence alignment of all the isoforms
-        alignment = request_multi_alignment(prot_seqs)
+    if isinstance(alignment, str):
         Alignment.objects.create(prots = prot_list, alignment = alignment)
-    except:
-        pass
-    return True
+    return True, True
 
 
 def get_protein(request):
@@ -161,25 +155,17 @@ def get_protein(request):
             )
         except: # no existing prot, so get the data
             pass
-        try:
-            data = get_all_data_related_to_prot(acc_num)
-            if not data:
-                return HttpResponse(
-                    "Could not find UniProt data for the accession number " + acc_num
-                )
-        except Exception as ex:
-            if isinstance(ex, Timeout):
-                response = HttpResponse(
-                    ("The EBI computer took more than 5 minutes to respond with "
-                    "a sequence alignment for the isoforms of protein %s"
-                    ", so the connection was terminated.") % acc_num
-                )
-            else:
-                response = HttpResponse(
-                    ("The server had an error while retrieving data on protein %s "
-                    "(or its isoforms) from UniProt.") % acc_num
-                )
-            logging.error(traceback.format_exc())
+        one_prot, multi_prots = get_all_data_related_to_prot(acc_num)
+        if not one_prot:
+            response = HttpResponse(
+                "Could not find UniProt data for the accession number " + acc_num
+            )
+            response.status_code = 500
+            return response
+        elif not multi_prots:
+            response = HttpResponse(
+                f"We could only find one isoform of the protein with UniProt accession number {acc_num} on UniProt."
+            )
             response.status_code = 500
             return response
         return HttpResponseRedirect(
