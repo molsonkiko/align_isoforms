@@ -8,7 +8,7 @@ from Bio.SeqRecord import SeqRecord
 import requests
 from requests import Timeout
 
-logging.basicConfig(level = logging.DEBUG,
+logging.basicConfig(level = logging.INFO,
                     format = '%(levelname)s: %(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 # see https://rest.uniprot.org/docs/#/
@@ -172,7 +172,7 @@ def request_multi_alignment(seqs: dict) -> str:
     resp.raise_for_status()
     return resp.text
 
-def align_isoforms(acc_num: str) -> tuple[dict, str, bool]:
+def align_isoforms(acc_num: str) -> tuple:
     '''get all isoforms of the protein with accession number acc_num,
     and return a tuple:
     (mapping of accession numbers to sequences,

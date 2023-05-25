@@ -98,7 +98,7 @@ def protein_view(request, acc_num: str):
     )
 
 
-def get_all_data_related_to_prot(acc_num: str) -> tuple[bool, bool, bool]:
+def get_all_data_related_to_prot(acc_num: str) -> tuple:
     '''Get all isoforms of protein with UniProt accession number acc_num,
     get a multiple sequence alignment of those isoforms,
     and for each peptide in the database that belongs to one of the isoforms,
