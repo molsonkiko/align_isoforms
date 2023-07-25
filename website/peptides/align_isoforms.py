@@ -8,7 +8,7 @@ from Bio.SeqRecord import SeqRecord
 import requests
 from requests import Timeout
 
-logging.basicConfig(level = logging.INFO,
+logging.basicConfig(level = logging.WARNING,
                     format = '%(levelname)s: %(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 # see https://rest.uniprot.org/docs/#/
