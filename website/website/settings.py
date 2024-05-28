@@ -145,8 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CACHES = {
     'default': { 
-        # use this during development when you don't want any caching
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        # # use this during development when you don't want any caching
+        # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
 
